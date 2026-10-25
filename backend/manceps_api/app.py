@@ -16,10 +16,13 @@ from manceps_core.mongo import Doc, MongoClientT
 from manceps_core.tenancy import TenantDb
 
 from . import health
+from .auth.tokens import TokenService
 from .context import AppContext
 from .errors import ERROR_RESPONSES, REPLAY_HEADER, install_error_handlers
+from .integrations.configured import Integrations
 from .logs import configure_logging
 from .middleware import REQUEST_ID_HEADER, RequestContextMiddleware
+from .routes import ROUTERS
 from .settings import Settings, load_settings
 
 API_TITLE = "Manceps API"
@@ -45,7 +48,8 @@ def _require_operation_id(route: APIRoute) -> str:
     raise RuntimeError(f"route {route.path} needs an explicit operation_id (<resource>_<verb>)")
 
 
-def create_app(settings: Settings, client: MongoClientT, clock: Clock = utc_now, owns_client: bool = False) -> FastAPI:
+def create_app(settings: Settings, client: MongoClientT, clock: Clock = utc_now, owns_client: bool = False,
+               integrations: Integrations | None = None) -> FastAPI:
     """Build the API application.
 
     Args:
@@ -53,11 +57,19 @@ def create_app(settings: Settings, client: MongoClientT, clock: Clock = utc_now,
         client: MongoDB client for the platform and firm databases.
         clock: Time source.
         owns_client: Close the client on shutdown.
+        integrations: External-service clients; built from settings when None.
 
     Returns:
         The FastAPI application.
+
+    Raises:
+        ValueError: If the configured JWT keys are malformed.
     """
-    context = AppContext(settings, client, client[settings.platform_db], TenantDb(client), clock)
+    context = AppContext(
+        settings, client, client[settings.platform_db], TenantDb(client), clock,
+        integrations=integrations if integrations is not None else Integrations.from_settings(settings),
+        tokens=TokenService.from_settings(settings, clock),
+    )
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
@@ -81,6 +93,8 @@ def create_app(settings: Settings, client: MongoClientT, clock: Clock = utc_now,
         )
     app.add_middleware(RequestContextMiddleware)
     app.include_router(health.router)
+    for router in ROUTERS:
+        app.include_router(router)
     return app
 
 

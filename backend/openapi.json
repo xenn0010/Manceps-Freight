@@ -1,6 +1,138 @@
 {
   "components": {
     "schemas": {
+      "AcceptResult": {
+        "description": "The firm joined; call /v1/auth/switch-firm to use it.",
+        "properties": {
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "role"
+        ],
+        "title": "AcceptResult",
+        "type": "object"
+      },
+      "AcceptedResponse": {
+        "description": "The request was accepted (whether or not anything was sent).",
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accepted"
+        ],
+        "title": "AcceptedResponse",
+        "type": "object"
+      },
+      "AuditItem": {
+        "description": "One audit record (state is stored as hashes only).",
+        "properties": {
+          "after_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Hash"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "before_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Hash"
+          },
+          "event": {
+            "title": "Event",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ref": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "who": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Who"
+          }
+        },
+        "required": [
+          "id",
+          "event",
+          "at",
+          "who",
+          "ref",
+          "request_id",
+          "session_id",
+          "before_hash",
+          "after_hash"
+        ],
+        "title": "AuditItem",
+        "type": "object"
+      },
       "ErrorBody": {
         "description": "The inner error object.",
         "properties": {
@@ -41,6 +173,88 @@
         "title": "ErrorEnvelope",
         "type": "object"
       },
+      "Firm": {
+        "description": "Firm profile.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owner_user_id": {
+            "title": "Owner User Id",
+            "type": "string"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "status",
+          "plan",
+          "timezone",
+          "owner_user_id",
+          "created_at"
+        ],
+        "title": "Firm",
+        "type": "object"
+      },
+      "FirmPatch": {
+        "additionalProperties": false,
+        "description": "Firm profile changes (owner only).",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "FirmPatch",
+        "type": "object"
+      },
       "Health": {
         "description": "Probe result.",
         "properties": {
@@ -55,6 +269,1084 @@
         ],
         "title": "Health",
         "type": "object"
+      },
+      "IntegrationList": {
+        "description": "Every external service the platform uses.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/IntegrationStatus"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "IntegrationList",
+        "type": "object"
+      },
+      "IntegrationStatus": {
+        "description": "One external service.",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "not_configured",
+              "ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status"
+        ],
+        "title": "IntegrationStatus",
+        "type": "object"
+      },
+      "Invitation": {
+        "description": "A pending or past invitation (the token is never listed).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "phone",
+          "role",
+          "status",
+          "created_at",
+          "expires_at"
+        ],
+        "title": "Invitation",
+        "type": "object"
+      },
+      "InvitationCreate": {
+        "additionalProperties": false,
+        "description": "Invite someone by email and/or phone.",
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "dispatcher",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "title": "InvitationCreate",
+        "type": "object"
+      },
+      "InvitationCreated": {
+        "description": "A new invitation; `token` is shown once (null on an idempotent replay, where it is not stored).",
+        "properties": {
+          "accept_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accept Url"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "phone",
+          "role",
+          "status",
+          "created_at",
+          "expires_at",
+          "token",
+          "accept_url"
+        ],
+        "title": "InvitationCreated",
+        "type": "object"
+      },
+      "MagicLinkStartRequest": {
+        "additionalProperties": false,
+        "description": "Email a sign-in link.",
+        "properties": {
+          "email": {
+            "maxLength": 254,
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "MagicLinkStartRequest",
+        "type": "object"
+      },
+      "Me": {
+        "description": "The signed-in user.",
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/MeCurrent"
+          },
+          "memberships": {
+            "items": {
+              "$ref": "#/components/schemas/MeMembership"
+            },
+            "title": "Memberships",
+            "type": "array"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MeUser"
+          }
+        },
+        "required": [
+          "user",
+          "memberships",
+          "current",
+          "session_id"
+        ],
+        "title": "Me",
+        "type": "object"
+      },
+      "MeCurrent": {
+        "description": "The firm and role of the current session.",
+        "properties": {
+          "role": {
+            "enum": [
+              "owner",
+              "dispatcher",
+              "viewer",
+              "carrier",
+              "driver",
+              "system"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "role"
+        ],
+        "title": "MeCurrent",
+        "type": "object"
+      },
+      "MeMembership": {
+        "description": "A firm the user belongs to.",
+        "properties": {
+          "firm_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firm Name"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "firm_name",
+          "role"
+        ],
+        "title": "MeMembership",
+        "type": "object"
+      },
+      "MePatch": {
+        "additionalProperties": false,
+        "description": "Profile changes.",
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "MePatch",
+        "type": "object"
+      },
+      "MeUser": {
+        "description": "Profile fields.",
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "phone",
+          "email",
+          "name",
+          "status"
+        ],
+        "title": "MeUser",
+        "type": "object"
+      },
+      "Member": {
+        "description": "A firm member.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "phone",
+          "email",
+          "role",
+          "status",
+          "created_at"
+        ],
+        "title": "Member",
+        "type": "object"
+      },
+      "MemberPatch": {
+        "additionalProperties": false,
+        "description": "Role change.",
+        "properties": {
+          "role": {
+            "enum": [
+              "owner",
+              "dispatcher",
+              "viewer"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "title": "MemberPatch",
+        "type": "object"
+      },
+      "OtpStartRequest": {
+        "additionalProperties": false,
+        "description": "Send a one-time code.",
+        "properties": {
+          "phone": {
+            "maxLength": 32,
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone"
+        ],
+        "title": "OtpStartRequest",
+        "type": "object"
+      },
+      "OtpVerifyRequest": {
+        "additionalProperties": false,
+        "description": "Check a code; a phone with no account also needs the signup fields.",
+        "properties": {
+          "accept_terms": {
+            "anyOf": [
+              {
+                "const": true,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accept Terms"
+          },
+          "code": {
+            "pattern": "^\\d{4,10}$",
+            "title": "Code",
+            "type": "string"
+          },
+          "firm_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firm Name"
+          },
+          "phone": {
+            "maxLength": 32,
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "phone",
+          "code"
+        ],
+        "title": "OtpVerifyRequest",
+        "type": "object"
+      },
+      "Page_AuditItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[AuditItem]",
+        "type": "object"
+      },
+      "Page_Invitation_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Invitation"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[Invitation]",
+        "type": "object"
+      },
+      "Page_Member_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Member"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[Member]",
+        "type": "object"
+      },
+      "Page_SessionItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SessionItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[SessionItem]",
+        "type": "object"
+      },
+      "PortalMe": {
+        "description": "Who the portal token is for.",
+        "properties": {
+          "carrier_id": {
+            "title": "Carrier Id",
+            "type": "string"
+          },
+          "carrier_name": {
+            "title": "Carrier Name",
+            "type": "string"
+          },
+          "firm_name": {
+            "title": "Firm Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "carrier_id",
+          "carrier_name",
+          "firm_name"
+        ],
+        "title": "PortalMe",
+        "type": "object"
+      },
+      "PortalTokenResponse": {
+        "description": "A portal access token (aud=portal).",
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "token_type": {
+            "const": "bearer",
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in"
+        ],
+        "title": "PortalTokenResponse",
+        "type": "object"
+      },
+      "Provisioning": {
+        "description": "Where the caller's latest signup stands; `ready` means the firm is active and switch-firm will work.",
+        "properties": {
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "status": {
+            "enum": [
+              "none",
+              "pending",
+              "provisioning",
+              "ready",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          }
+        },
+        "required": [
+          "status",
+          "tenant_id",
+          "message"
+        ],
+        "title": "Provisioning",
+        "type": "object"
+      },
+      "RefreshRequest": {
+        "additionalProperties": false,
+        "description": "Native clients send the refresh token in the body; browsers use the mc_refresh cookie.",
+        "properties": {
+          "refresh_token": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh Token"
+          }
+        },
+        "title": "RefreshRequest",
+        "type": "object"
+      },
+      "ScopedExchangeRequest": {
+        "additionalProperties": false,
+        "description": "A scoped link token.",
+        "properties": {
+          "token": {
+            "pattern": "^mcl_[A-Za-z0-9_-]{43}$",
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "ScopedExchangeRequest",
+        "type": "object"
+      },
+      "SecretTokenRequest": {
+        "additionalProperties": false,
+        "description": "A one-time secret from a link (magic link or invitation).",
+        "properties": {
+          "token": {
+            "pattern": "^(mci_)?[A-Za-z0-9_-]{43}$",
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "SecretTokenRequest",
+        "type": "object"
+      },
+      "SentResponse": {
+        "description": "A code was sent.",
+        "properties": {
+          "sent": {
+            "title": "Sent",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sent"
+        ],
+        "title": "SentResponse",
+        "type": "object"
+      },
+      "SessionItem": {
+        "description": "A live session (one per sign-in on a device).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current": {
+            "title": "Current",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ip": {
+            "title": "Ip",
+            "type": "string"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "ua": {
+            "title": "Ua",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_id",
+          "created_at",
+          "expires_at",
+          "ua",
+          "ip",
+          "current"
+        ],
+        "title": "SessionItem",
+        "type": "object"
+      },
+      "SignupStatus": {
+        "description": "Public signup status.",
+        "properties": {
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "provisioning",
+              "ready",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          }
+        },
+        "required": [
+          "status",
+          "tenant_id"
+        ],
+        "title": "SignupStatus",
+        "type": "object"
+      },
+      "SwitchFirmRequest": {
+        "additionalProperties": false,
+        "description": "Switch the session to a firm the user belongs to (default: the newest ready one).",
+        "properties": {
+          "tenant_id": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z][a-z0-9-]{1,30}[a-z0-9]$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          }
+        },
+        "title": "SwitchFirmRequest",
+        "type": "object"
+      },
+      "TokenResponse": {
+        "description": "Tokens after sign-in, refresh or switching firm.",
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in": {
+            "description": "Access token lifetime in seconds.",
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "refresh_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only for native clients (X-Client: native); browsers get the HttpOnly mc_refresh cookie.",
+            "title": "Refresh Token"
+          },
+          "role": {
+            "enum": [
+              "owner",
+              "dispatcher",
+              "viewer",
+              "carrier",
+              "driver",
+              "system"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "signup_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Signup status token after a new signup.",
+            "title": "Signup Token"
+          },
+          "state": {
+            "enum": [
+              "active",
+              "provisioning",
+              "no_firm"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "tenant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Id"
+          },
+          "token_type": {
+            "const": "bearer",
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in",
+          "refresh_token",
+          "session_id",
+          "user_id",
+          "tenant_id",
+          "role",
+          "state"
+        ],
+        "title": "TokenResponse",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "FirmBearer": {
+        "description": "Access token (aud=firm) from /v1/auth/otp/verify, magic-link or refresh.",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "PortalBearer": {
+        "description": "Portal token (aud=portal) from /v1/auth/scoped/exchange.",
+        "scheme": "bearer",
+        "type": "http"
       }
     }
   },
@@ -155,6 +1447,1510 @@
         "summary": "Readiness probe",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/v1/audit": {
+      "get": {
+        "description": "List the firm's audit records, newest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm owner.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.",
+        "operationId": "audit_list",
+        "parameters": [
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_AuditItem_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Firm audit log",
+        "tags": [
+          "firm"
+        ]
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "description": "Revoke the caller's session family and clear the refresh cookie.\n\nArgs:\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    204 with the cookie cleared.",
+        "operationId": "auth_logout",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "End this session",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/logout-all": {
+      "post": {
+        "description": "Bump the token epoch (every access token dies on its next use) and revoke every session.\n\nArgs:\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    204 with the cookie cleared.",
+        "operationId": "auth_logout_all",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "End every session",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/magic-link/start": {
+      "post": {
+        "description": "Email a single-use sign-in link if the address belongs to an active user.\n\nArgs:\n    body: The email address.\n    request: Incoming request.\n\nReturns:\n    {\"accepted\": true} whether or not an email was sent.\n\nRaises:\n    ApiError: 503 when email sign-in is not configured, 429 over the limits.",
+        "operationId": "auth_magic_link_start",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MagicLinkStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "summary": "Email a sign-in link",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/magic-link/verify": {
+      "post": {
+        "description": "Spend a magic-link token and sign the user in.\n\nArgs:\n    body: The token from the link.\n    request: Incoming request.\n    response: Outgoing response.\n\nReturns:\n    Tokens.\n\nRaises:\n    ApiError: 503 when not configured, 429, 400 invalid_token for unknown, used or expired tokens, 401 when the\n        account is disabled.",
+        "operationId": "auth_magic_link_verify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "summary": "Sign in with a link",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/otp/start": {
+      "post": {
+        "description": "Text a one-time code to a phone.\n\nArgs:\n    body: The phone.\n    request: Incoming request.\n\nReturns:\n    {\"sent\": true}.\n\nRaises:\n    ApiError: 503 without Twilio, 429 over the limits, 502 when Twilio fails.",
+        "operationId": "auth_otp_start",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "summary": "Send a sign-in code",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/otp/verify": {
+      "post": {
+        "description": "Check a code; sign in an existing user, or create the user and queue the firm for a new phone.\n\nArgs:\n    body: Phone, code, and for a new phone firm_name and accept_terms.\n    request: Incoming request.\n    response: Outgoing response (refresh cookie for browsers).\n\nReturns:\n    Tokens; a new signup gets tid=null, role=owner, state=provisioning and a signup_token.\n\nRaises:\n    ApiError: 503 without Twilio or JWT keys, 422 signup_details_required, 429, 502, 400 invalid_code, 409.",
+        "operationId": "auth_otp_verify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "summary": "Sign in or sign up with a code",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "description": "Exchange a refresh token (body for native clients, mc_refresh cookie for browsers) for new tokens.\n\nArgs:\n    request: Incoming request.\n    response: Outgoing response.\n    body: Optional body with refresh_token.\n    mc_refresh: Browser refresh cookie.\n\nReturns:\n    New tokens; the old refresh token is spent.\n\nRaises:\n    ApiError: 401 invalid_refresh or refresh_reuse (the family is then revoked), 429, 503.",
+        "operationId": "auth_refresh",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "mc_refresh",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mc Refresh"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/RefreshRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "summary": "Rotate the refresh token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/scoped/exchange": {
+      "post": {
+        "description": "Exchange a carrier link token for a 60-minute portal token (aud=portal, role=carrier, sub=carrier id).\n\nArgs:\n    body: Link token.\n    request: Incoming request.\n\nReturns:\n    The portal token.\n\nRaises:\n    ApiError: 401 invalid_link for unknown, revoked or expired links; 429; 503 without JWT keys.",
+        "operationId": "auth_scoped_exchange",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScopedExchangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalTokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "summary": "Exchange a scoped link",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
+    "/v1/auth/switch-firm": {
+      "post": {
+        "description": "Point the current session at a firm the user belongs to and issue a firm access token.\n\nArgs:\n    body: Optional firm id (checked against the user's memberships).\n    request: Incoming request.\n    response: Outgoing response.\n    principal: Signed-in user.\n\nReturns:\n    A new access token for the firm; the refresh token is unchanged.\n\nRaises:\n    ApiError: 404 or 409 as in `_switch_target`.",
+        "operationId": "auth_switch_firm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwitchFirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Switch this session to a firm",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/firm": {
+      "get": {
+        "description": "Return the caller's firm.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The firm.",
+        "operationId": "firm_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Firm"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "The current firm",
+        "tags": [
+          "firm"
+        ]
+      },
+      "patch": {
+        "description": "Change the firm's name or timezone (audited).\n\nArgs:\n    body: Fields to change.\n    request: Incoming request.\n    principal: Firm owner.\n\nReturns:\n    The updated firm.",
+        "operationId": "firm_update",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FirmPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Firm"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Update the firm",
+        "tags": [
+          "firm"
+        ]
+      }
+    },
+    "/v1/firm/provisioning": {
+      "get": {
+        "description": "Report the caller's latest signup; poll until `ready`, then call /v1/auth/switch-firm.\n\nArgs:\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    The provisioning status.",
+        "operationId": "firm_provisioning_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Provisioning"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Signup provisioning status",
+        "tags": [
+          "firm"
+        ]
+      }
+    },
+    "/v1/integrations": {
+      "get": {
+        "description": "Report which external services are configured (never their credentials).\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    Status per service.",
+        "operationId": "integrations_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "External service status",
+        "tags": [
+          "firm"
+        ]
+      }
+    },
+    "/v1/invitations/accept": {
+      "post": {
+        "description": "Join the firm that issued an invitation; the signed-in user's email or phone must match it.\n\nArgs:\n    body: Invitation token.\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    The firm and role; switch to it with /v1/auth/switch-firm.\n\nRaises:\n    ApiError: 404 unknown, used or expired; 403 invitation_mismatch; 409 already_member; 429.",
+        "operationId": "invitations_accept",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecretTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Accept an invitation",
+        "tags": [
+          "team"
+        ]
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "description": "Return the signed-in user, their firms and the current firm.\n\nArgs:\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    The user.",
+        "operationId": "me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "The signed-in user",
+        "tags": [
+          "meta"
+        ]
+      },
+      "patch": {
+        "description": "Change the caller's name or email (emails are unique across users).\n\nArgs:\n    body: Fields to change.\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    The updated user.\n\nRaises:\n    ApiError: 409 email_taken.",
+        "operationId": "me_update",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MePatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Update my profile",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/v1/members": {
+      "get": {
+        "description": "List the firm's members, oldest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.",
+        "operationId": "members_list",
+        "parameters": [
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Member_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List members",
+        "tags": [
+          "team"
+        ]
+      }
+    },
+    "/v1/members/invitations": {
+      "get": {
+        "description": "List the firm's pending, unexpired invitations, oldest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm owner.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.",
+        "operationId": "invitations_list",
+        "parameters": [
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Invitation_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List pending invitations",
+        "tags": [
+          "team"
+        ]
+      },
+      "post": {
+        "description": "Create an invitation and return its one-time token and accept URL (sending it is up to the owner).\n\nArgs:\n    body: Who to invite and with which role.\n    request: Incoming request.\n    principal: Firm owner.\n    guard: Idempotency guard (Idempotency-Key header optional).\n\nReturns:\n    The invitation with its token.",
+        "operationId": "invitations_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvitationCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Invite a member",
+        "tags": [
+          "team"
+        ]
+      }
+    },
+    "/v1/members/invitations/{invitation_id}": {
+      "delete": {
+        "description": "Revoke a pending invitation of the caller's firm.\n\nArgs:\n    invitation_id: Invitation id.\n    request: Incoming request.\n    principal: Firm owner.\n\nReturns:\n    204.\n\nRaises:\n    ApiError: 404 when it is not a pending invitation of this firm.",
+        "operationId": "invitations_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "invitation_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Invitation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Revoke an invitation",
+        "tags": [
+          "team"
+        ]
+      }
+    },
+    "/v1/members/{user_id}": {
+      "delete": {
+        "description": "Remove a member (audited; access ends on their next request); the last owner cannot be removed.\n\nArgs:\n    user_id: Member's user id.\n    request: Incoming request.\n    principal: Firm owner.\n\nReturns:\n    204.\n\nRaises:\n    ApiError: 404 not a member of this firm, 409 last_owner.",
+        "operationId": "members_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Remove a member",
+        "tags": [
+          "team"
+        ]
+      },
+      "patch": {
+        "description": "Change a member's role (audited); the last owner cannot be demoted.\n\nArgs:\n    user_id: Member's user id.\n    body: New role.\n    request: Incoming request.\n    principal: Firm owner.\n\nReturns:\n    The updated member.\n\nRaises:\n    ApiError: 404 not a member of this firm, 409 last_owner.",
+        "operationId": "members_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Member"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Change a member's role",
+        "tags": [
+          "team"
+        ]
+      }
+    },
+    "/v1/portal/me": {
+      "get": {
+        "description": "Return the carrier and firm a portal token belongs to.\n\nArgs:\n    request: Incoming request.\n    principal: Portal principal.\n\nReturns:\n    Carrier id and name and the firm name.\n\nRaises:\n    ApiError: 404 when the carrier no longer exists in the firm.",
+        "operationId": "portal_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalMe"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "PortalBearer": []
+          }
+        ],
+        "summary": "Portal identity",
+        "tags": [
+          "portal"
+        ]
+      }
+    },
+    "/v1/sessions": {
+      "get": {
+        "description": "List the caller's live sessions (one per device sign-in), newest first.\n\nArgs:\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    All live sessions; next_cursor is always null (the list is bounded by refresh expiry).",
+        "operationId": "sessions_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_SessionItem_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List my sessions",
+        "tags": [
+          "auth",
+          "sessions"
+        ]
+      }
+    },
+    "/v1/sessions/{session_id}": {
+      "delete": {
+        "description": "Revoke a session (its whole family) that belongs to the caller.\n\nArgs:\n    session_id: Session id.\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    204.\n\nRaises:\n    ApiError: 404 when the session is not the caller's.",
+        "operationId": "sessions_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Revoke one of my sessions",
+        "tags": [
+          "auth",
+          "sessions"
+        ]
+      }
+    },
+    "/v1/signup/status/{token}": {
+      "get": {
+        "description": "Report a signup's status by its unguessable token (public, rate limited per IP).\n\nArgs:\n    token: Signup status token.\n    request: Incoming request.\n\nReturns:\n    Status, the tenant id once ready, and a message when failed.\n\nRaises:\n    ApiError: 404 for an unknown token, 429 over the limit.",
+        "operationId": "signup_status_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "summary": "Poll a signup",
+        "tags": [
+          "auth"
         ]
       }
     }

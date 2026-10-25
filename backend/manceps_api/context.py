@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import structlog
 from fastapi import Request
@@ -13,6 +13,8 @@ from manceps_core.indexes import ensure_platform_indexes
 from manceps_core.mongo import MongoClientT, MongoDb
 from manceps_core.tenancy import TenantDb
 
+from .auth.tokens import TokenService
+from .integrations.configured import Integrations
 from .settings import Settings
 
 log = structlog.get_logger(__name__)
@@ -27,6 +29,8 @@ class AppContext:
     platform_db: MongoDb
     tenant_db: TenantDb
     clock: Clock
+    integrations: Integrations = field(default_factory=Integrations)
+    tokens: TokenService | None = None
     indexes_ready: bool = False
 
     def ensure_indexes(self) -> bool:

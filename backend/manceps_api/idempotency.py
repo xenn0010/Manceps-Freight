@@ -10,7 +10,7 @@ principal dependency in an `Annotated[...]` signature, which FastAPI must evalua
 
 import json
 import re
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from datetime import datetime, timedelta
 from typing import Annotated, Any, NoReturn
 
@@ -138,7 +138,7 @@ def _claim(repo: PlatformRepo, key: str, route: str, body_hash: str, now: dateti
 
 
 def idempotency_dependency(
-    principal_dependency: Callable[..., Principal], *, required: bool = False,
+    principal_dependency: Callable[..., Principal] | Callable[..., Awaitable[Principal]], *, required: bool = False,
 ) -> Callable[..., AsyncIterator[IdempotencyGuard]]:
     """Build a FastAPI dependency enforcing Idempotency-Key for one principal source.
 
