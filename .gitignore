@@ -8,7 +8,7 @@
 hermes-agent/
 
 # Local Claude Code settings
-.claude/settings.local.json
+.claude/
 
 # Python and tool caches
 __pycache__/
