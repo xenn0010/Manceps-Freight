@@ -1,0 +1,68 @@
+@font-face {
+  font-family: "Alliance No.2";
+  src: url("/assets/AllianceNo2-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-display: swap;
+}
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: "Alliance No.2", system-ui, sans-serif;
+  color: #010D1D;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: #2272AD; text-decoration: none; }
+a:hover { color: #1B5E94; }
+textarea::placeholder, input::placeholder { color: #8C9AAD; }
+button:focus-visible, textarea:focus-visible { outline: 2px solid #2272AD; outline-offset: 2px; }
+.pretty { text-wrap: pretty; }
+.balance { text-wrap: balance; }
+
+/* Per-page body styles, set by usePage(). */
+html:has(body.page-app), body.page-app { height: 100%; }
+body.page-app { background: rgba(255, 255, 255, .55); overflow: hidden; }
+body.page-landing { background: #000C1D; }
+.page-landing a { color: #010D1D; }
+.page-landing a:hover { color: #2272AD; }
+body.page-start { background: #F1F4F8; }
+.page-start input:focus { outline: 2px solid #2272AD; outline-offset: 2px; }
+
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+@keyframes boxIn { 0% { transform: translateY(-140%) rotate(-12deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Landing hovers. */
+.page-landing .l-nav:hover { color: #010D1D !important; }
+.page-landing .l-dark:hover { background: #2272AD !important; color: #FFFFFF !important; }
+.page-landing .l-cta:hover { background: #FFFFFF !important; color: #010D1D !important; }
+.l-card:hover { background: #F3F7FB !important; }
+
+/* Onboarding hovers. */
+.o-dark:hover { background: #2272AD !important; }
+.o-outline:hover { border-color: #010D1D !important; }
+.o-blue-border:hover { border-color: #2272AD !important; }
+.o-soft:hover { background: #E2E8F0 !important; }
+.o-tint:hover { background: #EEF4FA !important; }
+.o-skip:hover { border-color: #010D1D !important; color: #010D1D !important; }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@keyframes ping { 0% { transform: scale(.85); opacity: .6; } 100% { transform: scale(1.5); opacity: 0; } }
+@keyframes up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 16px) scale(.98); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+
+/* Hover states; !important wins over the inline base styles, as in the design. */
+.hv-need:hover { background: #F3F7FB !important; }
+.hv-soft:hover { background: #E2E8F0 !important; }
+.hv-ink-border:hover { border-color: #010D1D !important; }
+.hv-blue-border:hover { border-color: #2272AD !important; }
+.hv-signout:hover { background: #FBECEA !important; }
+.hv-white:hover { background: #FFFFFF !important; }
+.hv-primary:hover { background: #2272AD !important; }
+.hv-faint:hover { background: rgba(1, 13, 29, .05) !important; }
+.hv-pill:hover { box-shadow: 0 1px 2px rgba(1, 13, 29, .08), 0 22px 48px -14px rgba(34, 114, 173, .5) !important; }
+.hv-glass:hover { background: rgba(255, 255, 255, .28) !important; }
+.hv-ghost:hover { background: rgba(255, 255, 255, .14) !important; }
+.hv-chip:hover { border-color: #2272AD !important; color: #010D1D !important; }
