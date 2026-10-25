@@ -1,0 +1,29 @@
+name: hermes-freight
+version: 0.1.0
+manifest_version: 2
+api_version: 1
+license: MIT
+description: Back-office tools and approval rules for independent freight dispatchers (carriers, broker vetting, broker memory), one MongoDB database per firm.
+tags: [freight, logistics, dispatch]
+provides_tools:
+  - carrier_upsert
+  - carrier_get
+  - carrier_list
+  - broker_check
+  - broker_remember
+  - broker_recall
+  - ratecon_read
+  - weather_alerts
+  - load_evaluate
+  - broker_search
+provides_hooks:
+  - pre_tool_call
+requires_env:
+  - name: MONGODB_URI
+    description: "Connection string for this firm's MongoDB database user"
+    secret: true
+  - name: FREIGHT_TENANT_ID
+    description: "This firm's tenant id (set by provision_tenant.py)"
+  - name: ANTHROPIC_API_KEY
+    description: "Claude key for reading Rate Con PDFs"
+    secret: true

@@ -1,0 +1,22 @@
+# Install as /etc/hermes/config.yaml (root-owned, mode 0644) on the gateway host.
+# Pins tenant isolation and the freight-only tool surface for every profile; profiles
+# cannot override these keys. Enforcement is the file permission, so Hermes must run as
+# a non-root user.
+plugins:
+  isolation: host
+agent:
+  disabled_toolsets:
+    # Isolation: profiles do not sandbox the agent, so no shell, files, or code.
+    - terminal
+    - file
+    - code_execution
+    # Scope: tools with no freight dispatch use, or that act outside the firm's accounts.
+    - computer_use
+    - browser
+    - connections
+    - delegation
+    - image_gen
+    - video_gen
+    - video
+    - x_search
+    - kanban

@@ -1,0 +1,5 @@
+# Test and lint tools; kept out of pyproject so Hermes does not resolve them.
+pytest>=8,<10
+mongomock>=4.3,<5
+ruff>=0.6
+pyright>=1.1.380

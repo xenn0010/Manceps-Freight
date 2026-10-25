@@ -1,0 +1,21 @@
+# Secrets: never commit
+.env*
+*.env
+*credentials*
+*secrets*
+
+# Upstream Hermes clone (its own git repo, pinned at 1c0cd66774)
+hermes-agent/
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Python and tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# OS
+.DS_Store

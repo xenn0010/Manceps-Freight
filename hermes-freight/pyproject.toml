@@ -1,0 +1,19 @@
+[project]
+name = "hermes-freight"
+version = "0.1.0"
+description = "Hermes plugin: back-office tools for independent freight dispatchers"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "pymongo>=4.10,<5",
+    "dnspython>=2.6,<3",
+    "anthropic>=0.125,<1",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "BLE"]
+
