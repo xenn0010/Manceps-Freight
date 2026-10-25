@@ -15,6 +15,7 @@ from manceps_core.mongo import MongoClientT, MongoDb
 from manceps_core.tenancy import Principal, TenantDb
 
 from .auth.tokens import TokenService
+from .exports.store import ExportStore
 from .integrations.configured import Integrations
 from .settings import Settings
 
@@ -32,6 +33,7 @@ class AppContext:
     clock: Clock
     integrations: Integrations = field(default_factory=Integrations)
     tokens: TokenService | None = None
+    export_store: ExportStore | None = None
     indexes_ready: bool = False
 
     def ensure_indexes(self) -> bool:

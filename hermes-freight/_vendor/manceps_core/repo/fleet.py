@@ -155,8 +155,29 @@ def _validate(rules: Mapping[str, Rule], changes: Mapping[str, Any], required: f
     return clean
 
 
+def validate_new(db: MongoDb, kind: str, values: Mapping[str, Any]) -> dict[str, Any]:
+    """Apply every rule a new driver or truck must pass, without writing (imports preview rows with it).
+
+    Args:
+        db: Firm database.
+        kind: driver or truck.
+        values: Proposed fields.
+
+    Returns:
+        The validated fields (without defaults).
+
+    Raises:
+        Invalid: On missing required fields or bad values (including an unknown carrier).
+    """
+    spec = SPECS[kind]
+    missing = [name for name in sorted(spec.required) if values.get(name) is None]
+    if missing:
+        raise Invalid(missing[0], f"{missing[0]} is required")
+    return {key: value for key, value in _validate(spec.rules(db), values, spec.required).items() if value is not None}
+
+
 def _create(db: MongoDb, ctx: WriteContext, kind: str, values: Mapping[str, Any],
-            defaults: Mapping[str, Any]) -> Doc:
+            defaults: Mapping[str, Any], record_id: ObjectId | None) -> Doc:
     """Validate and insert a driver or truck.
 
     Args:
@@ -165,20 +186,18 @@ def _create(db: MongoDb, ctx: WriteContext, kind: str, values: Mapping[str, Any]
         kind: driver or truck.
         values: Proposed fields.
         defaults: Values used when absent.
+        record_id: Reserved id (imports), or None for a new one.
 
     Returns:
         The stored record.
 
     Raises:
         Invalid: On missing required fields or bad values.
-        Conflict: On a duplicate phone or VIN.
+        Conflict: On a duplicate phone or VIN (or a reserved id already taken).
     """
     spec = SPECS[kind]
-    missing = [name for name in sorted(spec.required) if values.get(name) is None]
-    if missing:
-        raise Invalid(missing[0], f"{missing[0]} is required")
-    clean = {key: value for key, value in _validate(spec.rules(db), values, spec.required).items() if value is not None}
-    return insert(db, ctx, spec.collection, kind, {**defaults, **clean}, spec.duplicate)
+    clean = validate_new(db, kind, values)
+    return insert(db, ctx, spec.collection, kind, {**defaults, **clean}, spec.duplicate, record_id)
 
 
 SPECS: Mapping[str, _Spec] = {
@@ -187,13 +206,14 @@ SPECS: Mapping[str, _Spec] = {
 }
 
 
-def create_driver(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any]) -> Doc:
+def create_driver(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any], record_id: ObjectId | None = None) -> Doc:
     """Add a driver to a carrier of this firm.
 
     Args:
         db: Firm database.
         ctx: Writer.
         values: Proposed fields.
+        record_id: Reserved id (imports), or None for a new one.
 
     Returns:
         The stored driver.
@@ -202,7 +222,7 @@ def create_driver(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any]) -> 
         Invalid: On missing or bad fields (including an unknown carrier).
         Conflict: duplicate_phone.
     """
-    return _create(db, ctx, "driver", values, {"status": DEFAULT_DRIVER_STATUS})
+    return _create(db, ctx, "driver", values, {"status": DEFAULT_DRIVER_STATUS}, record_id)
 
 
 def create_truck(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any]) -> Doc:
@@ -220,7 +240,7 @@ def create_truck(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any]) -> D
         Invalid: On missing or bad fields (including an unknown carrier).
         Conflict: duplicate_vin.
     """
-    return _create(db, ctx, "truck", values, {})
+    return _create(db, ctx, "truck", values, {}, None)
 
 
 def get_record(db: MongoDb, kind: str, record_id: Any) -> Doc:

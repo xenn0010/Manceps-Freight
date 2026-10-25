@@ -173,7 +173,29 @@ def _validate(db: MongoDb, kind: str, changes: Mapping[str, Any]) -> dict[str, A
     return clean
 
 
-def create_record(db: MongoDb, ctx: WriteContext, kind: str, values: Mapping[str, Any]) -> Doc:
+def validate_new(db: MongoDb, kind: str, values: Mapping[str, Any]) -> dict[str, Any]:
+    """Apply every rule a new contact or facility must pass, without writing (imports preview rows with it).
+
+    Args:
+        db: Firm database.
+        kind: contact or facility.
+        values: Proposed fields.
+
+    Returns:
+        The validated fields (without defaults; a facility `location` becomes `geo`).
+
+    Raises:
+        Invalid: On missing required fields or bad values.
+    """
+    required = KINDS[kind][2]
+    missing = [name for name in sorted(required) if values.get(name) is None]
+    if missing:
+        raise Invalid(missing[0], f"{missing[0]} is required")
+    return {key: value for key, value in _validate(db, kind, values).items() if value is not None}
+
+
+def create_record(db: MongoDb, ctx: WriteContext, kind: str, values: Mapping[str, Any],
+                  record_id: ObjectId | None = None) -> Doc:
     """Add a contact or facility.
 
     Args:
@@ -181,21 +203,19 @@ def create_record(db: MongoDb, ctx: WriteContext, kind: str, values: Mapping[str
         ctx: Writer.
         kind: contact or facility.
         values: Proposed fields.
+        record_id: Reserved id (imports), or None for a new one.
 
     Returns:
         The stored record.
 
     Raises:
         Invalid: On missing required fields or bad values.
+        DuplicateKeyError: If record_id is already taken.
     """
-    collection, _build, required = KINDS[kind]
-    missing = [name for name in sorted(required) if values.get(name) is None]
-    if missing:
-        raise Invalid(missing[0], f"{missing[0]} is required")
-    clean = {key: value for key, value in _validate(db, kind, values).items() if value is not None}
+    clean = validate_new(db, kind, values)
     defaults: dict[str, Any] = {"tags": [], "phones": [], "emails": [], "source": DEFAULT_SOURCE} \
         if kind == "contact" else {"contact_ids": []}
-    return insert(db, ctx, collection, kind, {**defaults, **clean})
+    return insert(db, ctx, KINDS[kind][0], kind, {**defaults, **clean}, None, record_id)
 
 
 def get_record(db: MongoDb, kind: str, record_id: Any) -> Doc:

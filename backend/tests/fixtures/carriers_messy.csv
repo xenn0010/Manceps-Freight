@@ -1,0 +1,11 @@
+﻿Carrier roster export (synthetic),,,,,,
+,,,,,,
+ Contact , Cell ,Docket,Company Name,E-mail,Trailer Type,Notes
+Hal Jordan,(469) 555-0120,MC-0012345,Coastline Freight,HAL@COASTLINE.EXAMPLE,Reefer,"Runs I-10, prefers
+night loads"
+Iris West,469.555.0121,12346,West Transit,iris@westtransit.example,flatbed / step deck,=HYPERLINK("http://bad.example")
+,,,,,,
+Jay Garrick,555-01,12347,Garrick Lines,jay@garrick.example,Dry Van,bad phone
+Hal Jordan,+1 (469) 555-0120,MC-0012345,Coastline Freight,hal@coastline.example,Reefer,duplicate of the first row
+Kara Danvers,4695550122,12348,Danvers Hauling,kara@danvers,Box Truck,bad email
+Lena Luthor,469 555 0123,,Luthor Logistics,,hotshot,

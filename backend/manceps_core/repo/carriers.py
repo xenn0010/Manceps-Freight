@@ -249,20 +249,18 @@ def check_terms(changes: Mapping[str, Any], allow_sensitive: bool) -> None:
         raise Invalid("consent", "record consent through POST /v1/carriers/{id}/consent", "use_consent_endpoint")
 
 
-def create_carrier(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any], allow_sensitive: bool) -> Doc:
-    """Add a carrier; the phone is required, normalized and unique within the firm.
+def validate_new(values: Mapping[str, Any], allow_sensitive: bool) -> dict[str, Any]:
+    """Apply every rule a new carrier must pass, without writing (imports preview rows with it).
 
     Args:
-        db: Firm database.
-        ctx: Writer.
         values: Proposed fields.
         allow_sensitive: The writer may set terms directly.
 
     Returns:
-        The stored carrier.
+        The fields create_carrier would store.
 
     Raises:
-        Conflict: approval_required, or duplicate_phone.
+        Conflict: approval_required.
         Invalid: On missing phone or bad values.
     """
     check_terms(values, allow_sensitive)
@@ -270,7 +268,28 @@ def create_carrier(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any], al
         raise Invalid("phone", "phone is required")
     clean = {key: value for key, value in validate(values).items() if value is not None}
     clean.setdefault("status", DEFAULT_STATUS)
-    return insert(db, ctx, CARRIERS, REF_TYPE, clean, DUPLICATE_PHONE)
+    return clean
+
+
+def create_carrier(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any], allow_sensitive: bool,
+                   record_id: ObjectId | None = None) -> Doc:
+    """Add a carrier; the phone is required, normalized and unique within the firm.
+
+    Args:
+        db: Firm database.
+        ctx: Writer.
+        values: Proposed fields.
+        allow_sensitive: The writer may set terms directly.
+        record_id: Reserved id (imports), or None for a new one.
+
+    Returns:
+        The stored carrier.
+
+    Raises:
+        Conflict: approval_required, or duplicate_phone (also when record_id is already taken).
+        Invalid: On missing phone or bad values.
+    """
+    return insert(db, ctx, CARRIERS, REF_TYPE, validate_new(values, allow_sensitive), DUPLICATE_PHONE, record_id)
 
 
 def get_carrier(db: MongoDb, carrier_id: Any) -> Doc:

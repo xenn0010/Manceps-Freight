@@ -1244,6 +1244,24 @@
         "title": "CheckRequest",
         "type": "object"
       },
+      "CommitIn": {
+        "additionalProperties": false,
+        "description": "How to treat rows that match an existing record (merge fills empty fields only).",
+        "properties": {
+          "duplicate_strategy": {
+            "default": "update",
+            "enum": [
+              "skip",
+              "update",
+              "merge"
+            ],
+            "title": "Duplicate Strategy",
+            "type": "string"
+          }
+        },
+        "title": "CommitIn",
+        "type": "object"
+      },
       "ConsentGrant": {
         "additionalProperties": false,
         "description": "Record that the carrier agreed to be contacted on a channel, and how (required).",
@@ -2028,6 +2046,277 @@
         "title": "ErrorEnvelope",
         "type": "object"
       },
+      "ExportFilters": {
+        "additionalProperties": false,
+        "description": "List filters; each entity accepts the ones its list route accepts.",
+        "properties": {
+          "carrier_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carrier Id"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "equipment": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equipment"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "q": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Q"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "tag": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag"
+          }
+        },
+        "title": "ExportFilters",
+        "type": "object"
+      },
+      "ExportIn": {
+        "additionalProperties": false,
+        "description": "An export request.",
+        "properties": {
+          "entity": {
+            "enum": [
+              "carriers",
+              "drivers",
+              "trucks",
+              "brokers",
+              "contacts",
+              "facilities"
+            ],
+            "title": "Entity",
+            "type": "string"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/ExportFilters"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "xlsx"
+            ],
+            "title": "Format",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity",
+          "format"
+        ],
+        "title": "ExportIn",
+        "type": "object"
+      },
+      "ExportOut": {
+        "description": "An export job and, when ready, where to download it.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "download_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ready exports only; requires the same bearer token.",
+            "title": "Download Url"
+          },
+          "entity": {
+            "title": "Entity",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "filters": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Filters",
+            "type": "object"
+          },
+          "format": {
+            "title": "Format",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ready_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready At"
+          },
+          "rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          },
+          "status": {
+            "description": "queued, running, ready or failed.",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "entity",
+          "format",
+          "filters",
+          "status",
+          "rows",
+          "filename",
+          "size_bytes",
+          "error",
+          "download_url",
+          "created_at",
+          "ready_at",
+          "expires_at"
+        ],
+        "title": "ExportOut",
+        "type": "object"
+      },
       "Facility": {
         "description": "A shipper or receiver location.",
         "properties": {
@@ -2479,6 +2768,279 @@
         "title": "Health",
         "type": "object"
       },
+      "ImportOut": {
+        "description": "An import: the file, its detected columns and mapping, counters and status.",
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "committed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Committed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "duplicate_strategy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duplicate Strategy"
+          },
+          "entity": {
+            "title": "Entity",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "file_type": {
+            "title": "File Type",
+            "type": "string"
+          },
+          "header_row": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Header Row"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ignored_consent_columns": {
+            "description": "Consent-like columns; consent is never imported.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Ignored Consent Columns",
+            "type": "array"
+          },
+          "mapping": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Mapping",
+            "type": "object"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ImportProgress"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_filename": {
+            "title": "Source Filename",
+            "type": "string"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/ImportStats"
+          },
+          "status": {
+            "description": "uploaded, validating, mapped, committing, committed, failed, undoing, undone.",
+            "title": "Status",
+            "type": "string"
+          },
+          "suggested_mapping": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Suggested Mapping",
+            "type": "object"
+          },
+          "undo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UndoCounts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "undo_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Undo Until"
+          },
+          "unmapped_required": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unmapped Required",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "entity",
+          "source_filename",
+          "file_type",
+          "status",
+          "columns",
+          "header_row",
+          "mapping",
+          "suggested_mapping",
+          "unmapped_required",
+          "ignored_consent_columns",
+          "stats",
+          "duplicate_strategy",
+          "progress",
+          "undo",
+          "undo_until",
+          "created_at",
+          "committed_at",
+          "error"
+        ],
+        "title": "ImportOut",
+        "type": "object"
+      },
+      "ImportProgress": {
+        "description": "Commit progress.",
+        "properties": {
+          "done": {
+            "title": "Done",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "done",
+          "total"
+        ],
+        "title": "ImportProgress",
+        "type": "object"
+      },
+      "ImportStats": {
+        "description": "Row counters: the check (rows ... existing) and, after the commit, what happened to each row.",
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "integer"
+          },
+          "duplicates_in_file": {
+            "title": "Duplicates In File",
+            "type": "integer"
+          },
+          "existing": {
+            "title": "Existing",
+            "type": "integer"
+          },
+          "invalid": {
+            "title": "Invalid",
+            "type": "integer"
+          },
+          "merged": {
+            "title": "Merged",
+            "type": "integer"
+          },
+          "needs_approval": {
+            "description": "Valid rows with carrier terms the uploader may not set directly.",
+            "title": "Needs Approval",
+            "type": "integer"
+          },
+          "new": {
+            "title": "New",
+            "type": "integer"
+          },
+          "rejected": {
+            "title": "Rejected",
+            "type": "integer"
+          },
+          "rows": {
+            "title": "Rows",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "updated": {
+            "title": "Updated",
+            "type": "integer"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rows",
+          "valid",
+          "invalid",
+          "duplicates_in_file",
+          "needs_approval",
+          "new",
+          "existing",
+          "created",
+          "updated",
+          "merged",
+          "skipped",
+          "rejected"
+        ],
+        "title": "ImportStats",
+        "type": "object"
+      },
       "IntegrationList": {
         "description": "Every external service the platform uses.",
         "properties": {
@@ -2863,6 +3425,38 @@
           "email"
         ],
         "title": "MagicLinkStartRequest",
+        "type": "object"
+      },
+      "MappingIn": {
+        "additionalProperties": false,
+        "description": "A column-to-field mapping; columns left out are not imported.",
+        "properties": {
+          "mapping": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxProperties": 200,
+            "propertyNames": {
+              "maxLength": 120,
+              "minLength": 1
+            },
+            "title": "Mapping",
+            "type": "object"
+          }
+        },
+        "required": [
+          "mapping"
+        ],
+        "title": "MappingIn",
         "type": "object"
       },
       "Me": {
@@ -3491,6 +4085,34 @@
         "title": "Page[Facility]",
         "type": "object"
       },
+      "Page_ImportOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ImportOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[ImportOut]",
+        "type": "object"
+      },
       "Page_Invitation_": {
         "properties": {
           "items": {
@@ -3573,6 +4195,34 @@
           "next_cursor"
         ],
         "title": "Page[Note]",
+        "type": "object"
+      },
+      "Page_ReportRow_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReportRow"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[ReportRow]",
         "type": "object"
       },
       "Page_SessionItem_": {
@@ -3678,6 +4328,100 @@
           "expires_in"
         ],
         "title": "PortalTokenResponse",
+        "type": "object"
+      },
+      "PreviewOut": {
+        "description": "The first rows of an import and the action counts over the whole file.",
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "duplicate_strategy": {
+            "title": "Duplicate Strategy",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/PreviewRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "duplicate_strategy",
+          "counts",
+          "rows"
+        ],
+        "title": "PreviewOut",
+        "type": "object"
+      },
+      "PreviewRow": {
+        "description": "A row as the commit would treat it.",
+        "properties": {
+          "action": {
+            "description": "create, update, merge or skip.",
+            "title": "Action",
+            "type": "string"
+          },
+          "cells": {
+            "additionalProperties": true,
+            "title": "Cells",
+            "type": "object"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/RowErrorOut"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "match_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Id"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "row_no": {
+            "title": "Row No",
+            "type": "integer"
+          },
+          "values": {
+            "additionalProperties": true,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "row_no",
+          "cells",
+          "values",
+          "action",
+          "reason",
+          "errors",
+          "match_id"
+        ],
+        "title": "PreviewRow",
         "type": "object"
       },
       "Provisioning": {
@@ -3852,6 +4596,124 @@
           }
         },
         "title": "RefreshRequest",
+        "type": "object"
+      },
+      "ReportRow": {
+        "description": "A row's check and, after a commit or undo, what happened to it.",
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/RowErrorOut"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "match_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Id"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "row_no": {
+            "title": "Row No",
+            "type": "integer"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "undo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Undo"
+          }
+        },
+        "required": [
+          "row_no",
+          "action",
+          "reason",
+          "errors",
+          "match_id",
+          "target_id",
+          "outcome",
+          "undo"
+        ],
+        "title": "ReportRow",
+        "type": "object"
+      },
+      "RowErrorOut": {
+        "description": "One problem with a row.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "field"
+        ],
+        "title": "RowErrorOut",
         "type": "object"
       },
       "ScopedExchangeRequest": {
@@ -4424,6 +5286,30 @@
           }
         },
         "title": "TruckPatch",
+        "type": "object"
+      },
+      "UndoCounts": {
+        "description": "What an undo did.",
+        "properties": {
+          "removed": {
+            "title": "Removed",
+            "type": "integer"
+          },
+          "restored": {
+            "title": "Restored",
+            "type": "integer"
+          },
+          "skipped_modified": {
+            "title": "Skipped Modified",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "restored",
+          "removed",
+          "skipped_modified"
+        ],
+        "title": "UndoCounts",
         "type": "object"
       },
       "manceps_api__routes__brokers__NoteCreate": {
@@ -7125,6 +8011,184 @@
         ]
       }
     },
+    "/v1/exports": {
+      "post": {
+        "description": "Queue a CSV or XLSX export of live records with the entity's list filters; poll GET /v1/exports/{id}.\n\nArgs:\n    body: Entity, format and filters.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n    guard: Idempotency guard (Idempotency-Key header optional).\n\nReturns:\n    The queued export.\n\nRaises:\n    ApiError: 503 exports_not_configured.\n    RepoError: 422 filter_not_allowed.",
+        "operationId": "exports_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Export records (runs as a job)",
+        "tags": [
+          "exports"
+        ]
+      }
+    },
+    "/v1/exports/{export_id}": {
+      "get": {
+        "description": "Return an export's status and, once ready, its download URL.\n\nArgs:\n    export_id: Export id.\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The export.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "exports_get",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "export_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Export Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Get an export",
+        "tags": [
+          "exports"
+        ]
+      }
+    },
+    "/v1/exports/{export_id}/download": {
+      "get": {
+        "description": "Stream a ready export file.\n\nArgs:\n    export_id: Export id.\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The file as an attachment.\n\nRaises:\n    ApiError: 404, 409 export_not_ready, 410 export_expired, 503 exports_not_configured.",
+        "operationId": "exports_download",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "export_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Export Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {},
+              "text/csv": {}
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Download an export",
+        "tags": [
+          "exports"
+        ]
+      }
+    },
     "/v1/facilities": {
       "get": {
         "description": "List live facilities, oldest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    state: Only this two-letter state.\n    city: Only this city (any case).\n    q: Name or address contains.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.\n    RepoError: 422 on a malformed state.",
@@ -7644,6 +8708,698 @@
         "summary": "Signup provisioning status",
         "tags": [
           "firm"
+        ]
+      }
+    },
+    "/v1/imports": {
+      "get": {
+        "description": "List the firm's imports, newest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.",
+        "operationId": "imports_list",
+        "parameters": [
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ImportOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List imports",
+        "tags": [
+          "imports"
+        ]
+      },
+      "post": {
+        "description": "Upload a CSV, XLSX or vCard file; rows are parsed, mapped by header names and checked.\n\nArgs:\n    request: Incoming request (multipart: entity, file).\n    response: Response (status 200 and the replay header for an identical earlier upload).\n    principal: Dispatcher or owner.\n\nReturns:\n    The import (status mapped, or uploaded when required columns still need a mapping).\n\nRaises:\n    ImportFileError: 413 file_too_large, 415 unsupported_file_type, 422 too_many_rows, no_header...",
+        "operationId": "imports_create",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "entity": {
+                    "enum": [
+                      "carriers",
+                      "drivers",
+                      "brokers",
+                      "contacts"
+                    ],
+                    "type": "string"
+                  },
+                  "file": {
+                    "description": ".csv or .xlsx (any entity) or .vcf (contacts); max IMPORT_MAX_BYTES and IMPORT_MAX_ROWS rows",
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "entity",
+                  "file"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Same file again"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Upload a file to import",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/v1/imports/templates/{entity}": {
+      "get": {
+        "description": "Return a CSV header row whose columns map onto the entity's fields.\n\nArgs:\n    entity: carriers, drivers, brokers or contacts.\n    principal: Firm member.\n\nReturns:\n    text/csv attachment.",
+        "operationId": "imports_template",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity",
+            "required": true,
+            "schema": {
+              "enum": [
+                "carriers",
+                "drivers",
+                "brokers",
+                "contacts"
+              ],
+              "title": "Entity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {}
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Download a CSV template",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/v1/imports/{import_id}": {
+      "get": {
+        "description": "Return an import: status (poll it while committing), columns, mapping and counters.\n\nArgs:\n    import_id: Import id.\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The import.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "imports_get",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Import Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Get an import",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/v1/imports/{import_id}/commit": {
+      "post": {
+        "description": "Queue the commit; poll GET /v1/imports/{id}. Asking again returns the first request (200, replayed).\n\nRows with carrier fee, floor or agreement values are written only when the owner commits; for a dispatcher\nthey are rejected with reason approval_required.\n\nArgs:\n    import_id: Import id.\n    body: Duplicate strategy.\n    request: Incoming request.\n    response: Response (200 and the replay header when already requested).\n    principal: Dispatcher or owner.\n\nReturns:\n    The import (status committing).\n\nRaises:\n    ApiError: 404, 409 mapping_required, import_undone, import_failed, import_busy or import_expired.",
+        "operationId": "imports_commit",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Import Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommitIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Commit already requested"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Commit an import (runs as a job)",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/v1/imports/{import_id}/mapping": {
+      "put": {
+        "description": "Map columns to fields and re-check every row. Consent can never be a target.\n\nArgs:\n    import_id: Import id.\n    body: Column to field.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The re-checked import.\n\nRaises:\n    ApiError: 404, 409 import_locked, 422 unknown_column, unknown_field, field_not_importable,\n        duplicate_field or required_field_unmapped.",
+        "operationId": "imports_map",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Import Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MappingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Set the column mapping",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/v1/imports/{import_id}/preview": {
+      "get": {
+        "description": "Show the first rows with the action a commit would take, and the action counts for the whole file.\n\nArgs:\n    import_id: Import id.\n    request: Incoming request.\n    principal: Firm member.\n    duplicate_strategy: skip, update or merge for rows matching an existing record.\n\nReturns:\n    The preview.\n\nRaises:\n    ApiError: 404, 409 mapping_required.",
+        "operationId": "imports_preview",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Import Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "duplicate_strategy",
+            "required": false,
+            "schema": {
+              "default": "update",
+              "enum": [
+                "skip",
+                "update",
+                "merge"
+              ],
+              "title": "Duplicate Strategy",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Preview an import",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/v1/imports/{import_id}/report": {
+      "get": {
+        "description": "Every row with its errors, action and (after a commit or undo) outcome; `format=csv` for a spreadsheet.\n\nArgs:\n    import_id: Import id.\n    request: Incoming request.\n    principal: Firm member.\n    format: json (paged) or csv (the whole file, formula-escaped).\n    limit: Page size (json).\n    cursor: Cursor from the previous page (json).\n\nReturns:\n    A page of rows, or a CSV attachment.\n\nRaises:\n    ApiError: 404, 400 invalid_cursor.",
+        "operationId": "imports_report",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Import Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "required": false,
+            "schema": {
+              "default": "json",
+              "enum": [
+                "json",
+                "csv"
+              ],
+              "title": "Format",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ReportRow_"
+                }
+              },
+              "text/csv": {}
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Validation and commit report",
+        "tags": [
+          "imports"
+        ]
+      }
+    },
+    "/v1/imports/{import_id}/undo": {
+      "post": {
+        "description": "Within IMPORT_UNDO_HOURS: restore updated records and remove created ones that nothing changed since.\n\nArgs:\n    import_id: Import id.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The undone import with its undo counts.\n\nRaises:\n    ApiError: 404, 409 undo_window_closed, already_undone, undo_in_progress or import_not_committed.",
+        "operationId": "imports_undo",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Import Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Undo a committed import",
+        "tags": [
+          "imports"
         ]
       }
     },

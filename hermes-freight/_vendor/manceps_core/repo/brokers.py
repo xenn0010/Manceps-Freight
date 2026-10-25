@@ -77,25 +77,41 @@ def _validate(changes: Mapping[str, Any]) -> dict[str, Any]:
     return clean
 
 
-def create_broker(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any]) -> Doc:
+def validate_new(values: Mapping[str, Any]) -> dict[str, Any]:
+    """Apply every rule a new broker must pass, without writing (imports preview rows with it).
+
+    Args:
+        values: Fields; mc_number is required.
+
+    Returns:
+        The validated fields.
+
+    Raises:
+        Invalid: On a missing MC or bad values.
+    """
+    if values.get("mc_number") is None:
+        raise Invalid("mc_number", "mc_number is required")
+    return {key: value for key, value in _validate(values).items() if value is not None}
+
+
+def create_broker(db: MongoDb, ctx: WriteContext, values: Mapping[str, Any], record_id: ObjectId | None = None) -> Doc:
     """Add a broker to the firm's memory.
 
     Args:
         db: Firm database.
         ctx: Writer.
         values: Fields; mc_number is required.
+        record_id: Reserved id (imports), or None for a new one.
 
     Returns:
         The stored broker.
 
     Raises:
         Invalid: On a missing MC or bad values.
-        Conflict: duplicate_mc.
+        Conflict: duplicate_mc (also when record_id is already taken).
     """
-    if values.get("mc_number") is None:
-        raise Invalid("mc_number", "mc_number is required")
-    clean = {key: value for key, value in _validate(values).items() if value is not None}
-    return insert(db, ctx, BROKERS, REF_TYPE, {"tags": [], "notes": [], **clean}, DUPLICATE_MC)
+    clean = validate_new(values)
+    return insert(db, ctx, BROKERS, REF_TYPE, {"tags": [], "notes": [], **clean}, DUPLICATE_MC, record_id)
 
 
 def get_broker(db: MongoDb, mc: Any) -> Doc:

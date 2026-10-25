@@ -12,8 +12,10 @@ from . import (
     carrier_access,
     carriers,
     contacts,
+    exports,
     firm,
     fleet,
+    imports,
     me,
     members,
     notes,
@@ -23,4 +25,5 @@ from . import (
 ROUTERS: tuple[APIRouter, ...] = (
     me.router, auth_otp.router, auth_magic.router, auth_sessions.router, portal.router, firm.router, members.router,
     carriers.router, carrier_access.router, fleet.router, brokers.router, contacts.router, notes.router,
+    imports.router, exports.router,
 )

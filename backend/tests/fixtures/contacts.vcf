@@ -1,0 +1,35 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Rivera;Ana;;;
+FN:Ana Rivera
+ORG:Summit Brokerage;Dallas Office
+TITLE:Carrier Sales
+TEL;TYPE=WORK,VOICE:(214) 555-0130
+TEL;TYPE=CELL:(214) 555-0131
+TEL;TYPE=HOME:214-555-0132
+EMAIL;TYPE=INTERNET:ana.rivera@summit.example
+NOTE:Prefers email\, not calls
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Ben Okafor
+N:Okafor;Ben;;;
+ORG:Northline Logistics
+TEL;VALUE=uri;TYPE="voice,cell":tel:+1-214-555-0140
+TEL;TYPE=work:tel:+1-214-555-0141
+TEL;TYPE=fax:tel:+1-214-555-0142
+EMAIL:ben@northline.example
+EMAIL;TYPE=work:dispatch@northline.example
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+N:Chen;Dana
+FN:Dana Chen
+ORG:Harbor Freight Brokers
+TEL;HOME:2145550150
+TEL;WORK;VOICE:2145550151
+TEL;CELL:2145550152
+EMAIL;INTERNET:dana.chen@harbor.example
+item1.TITLE:Night dispatcher with a very long title that is folded
+  across two lines
+END:VCARD

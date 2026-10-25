@@ -1,0 +1,4 @@
+First Name,Middle Name,Last Name,Nickname,Organization Name,Organization Title,Notes,Labels,E-mail 1 - Label,E-mail 1 - Value,E-mail 2 - Label,E-mail 2 - Value,Phone 1 - Label,Phone 1 - Value,Phone 2 - Label,Phone 2 - Value
+Erin,,Walsh,,Prime Route Brokerage,Account Manager,,* myContacts,Work,erin@primeroute.example,,,Mobile,+1 214-555-0160,Work,(214) 555-0161
+Frank,J,Moreno,,Cascade Shippers,Shipping Clerk,Dock 4,* myContacts ::: Shippers,Work,frank@cascade.example ::: f.moreno@cascade.example,,,Mobile,214.555.0170 ::: 214.555.0171,,
+Grace,,Kim,,,,,* myContacts,,,,,Mobile,2145550180,,

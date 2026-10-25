@@ -103,8 +103,8 @@ FIRM_INDEXES: Mapping[str, tuple[IndexSpec, ...]] = {
     "load_events": (_idx(("load_id", ASC), ("at", ASC)),),
     "approvals": (_idx(("status", ASC), ("created_at", ASC)), _idx(("subject_ref.type", ASC), ("subject_ref.id", ASC))),
     "imports": (_idx(("status", ASC), ("created_at", ASC)), _idx(("idempotency_hash", ASC), unique=True)),
-    "import_rows": (_idx(("import_id", ASC), ("row_no", ASC)),),
-    "exports": (_idx(("expires_at", ASC), ttl=EXPIRE_AT_FIELD_TIME),),
+    "import_rows": (_idx(("import_id", ASC), ("row_no", ASC)), _idx(("expires_at", ASC), ttl=EXPIRE_AT_FIELD_TIME)),
+    "exports": (_idx(("expires_at", ASC), ttl=EXPIRE_AT_FIELD_TIME), _idx(("status", ASC), ("created_at", ASC))),
     "events": (_idx(("seq", ASC), unique=True), _idx(("at", ASC), ttl=EVENTS_TTL_SECONDS)),
     "audit": (_idx(("at", DESC)), _idx(("ref.type", ASC), ("ref.id", ASC), ("at", DESC))),
 }

@@ -1,0 +1,6 @@
+Carrier Name,Company,MC#,Phone,Email,Equipment,Home Base,SMS Consent
+Lone Star Hauling,Lone Star Hauling LLC,MC-100001,(214) 555-0110,dispatch@lonestar.example,"dry_van, reefer","Dallas, TX",yes
+Red River Freight,Red River Freight Inc,100002,214-555-0111,ops@redriver.example,flatbed,"Denison, TX",no
+Prairie Wind Transport,,100003,+1 214 555 0112,,Dry Van,"Amarillo, TX",yes
+Gulf Coast Carriers,Gulf Coast Carriers LLC,MC 100004,2145550113,team@gulfcoast.example,Reefer; Power Only,"Houston, TX",
+Mesa Line Trucking,Mesa Line LLC,100005,1 (214) 555-0114,mesa@mesaline.example,step deck,"El Paso, TX",yes

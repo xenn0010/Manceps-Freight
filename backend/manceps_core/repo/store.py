@@ -157,7 +157,7 @@ def list_live(db: MongoDb, collection: str, query: Mapping[str, Any], after: Obj
 
 
 def insert(db: MongoDb, ctx: WriteContext, collection: str, ref_type: str, doc: Mapping[str, Any],
-           duplicate: DuplicateRule | None = None) -> Doc:
+           duplicate: DuplicateRule | None = None, record_id: ObjectId | None = None) -> Doc:
     """Insert a record stamped with created/updated times and creator, then audit it.
 
     Args:
@@ -167,6 +167,8 @@ def insert(db: MongoDb, ctx: WriteContext, collection: str, ref_type: str, doc: 
         ref_type: Record kind (audit event "<ref_type>.create").
         doc: Validated fields.
         duplicate: (code, message) for a unique-index clash, or None to re-raise it.
+        record_id: Id to store the record under (an import job reserves it so a retried write cannot create the
+            record twice), or None for a new id.
 
     Returns:
         The stored document.
@@ -177,7 +179,8 @@ def insert(db: MongoDb, ctx: WriteContext, collection: str, ref_type: str, doc: 
         Invalid: If the document holds values the audit record cannot hash.
     """
     now = ctx.now()
-    stored: Doc = {"_id": ObjectId(), **doc, "created_at": now, "updated_at": now, "created_by": dict(ctx.who)}
+    stored: Doc = {"_id": record_id if record_id is not None else ObjectId(), **doc, "created_at": now,
+                   "updated_at": now, "created_by": dict(ctx.who)}
     ensure_auditable(stored)
     try:
         db[collection].insert_one(stored)

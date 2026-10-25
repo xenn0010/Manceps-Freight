@@ -297,7 +297,7 @@ def _list_everything(client: TestClient, headers: dict[str, str], carrier_id: st
              f"/v1/drivers?carrier_id={carrier_id}", f"/v1/trucks?carrier_id={carrier_id}", "/v1/brokers",
              "/v1/brokers?q=123456", "/v1/brokers/123456/checks", "/v1/contacts", "/v1/contacts?kind=shipper",
              "/v1/facilities", "/v1/facilities?state=TX", f"/v1/notes?ref_type=carrier&ref_id={carrier_id}",
-             "/v1/audit", "/v1/members", "/v1/members/invitations", "/v1/tags"]
+             "/v1/audit", "/v1/members", "/v1/members/invitations", "/v1/tags", "/v1/imports"]
     for path in paths:
         response = client.get(path, headers=headers)
         assert response.status_code == 200, (path, response.text)

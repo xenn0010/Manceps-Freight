@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     import_max_bytes: int = Field(default=DEFAULT_IMPORT_MAX_BYTES, gt=0)
     import_max_rows: int = Field(default=DEFAULT_IMPORT_MAX_ROWS, gt=0)
     import_undo_hours: int = Field(default=DEFAULT_IMPORT_UNDO_HOURS, gt=0)
+    export_dir: str | None = None
     log_level: LogLevel = "INFO"
     api_host: str = "127.0.0.1"
     api_port: int = Field(default=DEFAULT_API_PORT, gt=0, le=MAX_TCP_PORT)

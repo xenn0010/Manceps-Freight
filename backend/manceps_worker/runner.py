@@ -1,4 +1,5 @@
-"""Minimal worker loop: poll `platform.signups` for provisioned signups without a firm and run `firm_activate`.
+"""Minimal worker loop: activate provisioned signups (`firm_activate`), then run firm jobs (import commits and
+exports, see jobs.py).
 
 Usage (working directory backend/):
     uv run python -m manceps_worker.runner            # poll forever
@@ -18,6 +19,7 @@ import structlog
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
+from manceps_api.exports.store import ExportStore, store_from_settings
 from manceps_api.logs import configure_logging
 from manceps_api.settings import load_settings
 from manceps_core.clock import Clock, utc_now
@@ -26,6 +28,7 @@ from manceps_core.signups import READY, SIGNUPS
 from manceps_core.tenancy import TenantDb
 
 from .firm_activate import firm_activate
+from .jobs import run_firm_jobs
 
 POLL_SECONDS = 5.0
 BATCH_SIZE = 50
@@ -62,8 +65,29 @@ def run_once(db: MongoDb, tenant_db: TenantDb, clock: Clock = utc_now) -> int:
     return done
 
 
+def run_pass(db: MongoDb, tenant_db: TenantDb, clock: Clock, store: ExportStore | None) -> int:
+    """Run one full pass: signup activations, then firm jobs.
+
+    Args:
+        db: Platform database.
+        tenant_db: Firm database provider.
+        clock: Time source.
+        store: Export store, or None when exports are not configured.
+
+    Returns:
+        Activations plus finished firm jobs.
+    """
+    activated = run_once(db, tenant_db, clock)
+    try:
+        return activated + run_firm_jobs(db, tenant_db, clock, store)
+    except PyMongoError as exc:
+        log.error("worker.firm_jobs_failed", error_type=type(exc).__name__)
+        return activated
+
+
 def run_loop(db: MongoDb, tenant_db: TenantDb, clock: Clock, stop: threading.Event,
-             poll_seconds: float = POLL_SECONDS, on_tick: Callable[[int], None] | None = None) -> None:
+             poll_seconds: float = POLL_SECONDS, on_tick: Callable[[int], None] | None = None,
+             store: ExportStore | None = None) -> None:
     """Poll until `stop` is set.
 
     Args:
@@ -72,10 +96,11 @@ def run_loop(db: MongoDb, tenant_db: TenantDb, clock: Clock, stop: threading.Eve
         clock: Time source.
         stop: Event that ends the loop.
         poll_seconds: Pause between passes.
-        on_tick: Called with each pass's activation count (used by tests and metrics).
+        on_tick: Called with each pass's count of activations and finished jobs (used by tests and metrics).
+        store: Export store, or None when exports are not configured.
     """
     while not stop.is_set():
-        count = run_once(db, tenant_db, clock)
+        count = run_pass(db, tenant_db, clock, store)
         if on_tick is not None:
             on_tick(count)
         stop.wait(poll_seconds)
@@ -105,9 +130,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         settings.mongodb_uri.get_secret_value(), serverSelectionTimeoutMS=SERVER_SELECTION_TIMEOUT_MS, tz_aware=True,
     )
     db, tenant_db = client[settings.platform_db], TenantDb(client)
+    store = store_from_settings(settings)
     try:
         if args.once:
-            run_once(db, tenant_db)
+            run_pass(db, tenant_db, utc_now, store)
             return EXIT_OK
         stop = threading.Event()
 
@@ -116,7 +142,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         signal.signal(signal.SIGTERM, _stop)
         signal.signal(signal.SIGINT, _stop)
-        run_loop(db, tenant_db, utc_now, stop)
+        run_loop(db, tenant_db, utc_now, stop, store=store)
     finally:
         client.close()
     return EXIT_OK

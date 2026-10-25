@@ -20,6 +20,7 @@ from . import health
 from .auth.tokens import TokenService
 from .context import AppContext
 from .errors import ERROR_RESPONSES, REPLAY_HEADER, install_error_handlers
+from .exports.store import store_from_settings
 from .integrations.configured import Integrations
 from .logs import configure_logging
 from .middleware import REQUEST_ID_HEADER, BodyLimitMiddleware, BodyLimitRule, RequestContextMiddleware
@@ -86,7 +87,7 @@ def create_app(settings: Settings, client: MongoClientT, clock: Clock = utc_now,
     context = AppContext(
         settings, client, client[settings.platform_db], TenantDb(client), clock,
         integrations=integrations if integrations is not None else Integrations.from_settings(settings),
-        tokens=TokenService.from_settings(settings, clock),
+        tokens=TokenService.from_settings(settings, clock), export_store=store_from_settings(settings),
     )
 
     @asynccontextmanager
