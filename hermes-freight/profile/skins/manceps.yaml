@@ -1,0 +1,11 @@
+# Hermes CLI skin for Manceps firm profiles: replaces the Hermes branding in the
+# terminal UI. Unlisted fields inherit from Hermes's default skin.
+name: manceps
+description: Manceps AI dispatcher branding
+spinner:
+  thinking_verbs: ["dispatching", "routing", "vetting", "checking rates"]
+branding:
+  agent_name: Manceps
+  welcome: "Manceps: your AI dispatch back office."
+  response_label: " ⛟ Manceps "
+  prompt_symbol: "⛟"

@@ -36,6 +36,7 @@ from ruamel.yaml import YAML
 PLUGIN_DIR = Path(__file__).resolve().parent.parent
 PLUGIN_NAME = "hermes-freight"
 PLUGIN_COPY_IGNORE = shutil.ignore_patterns("__pycache__", "tests", "vapi", ".pytest_cache")
+SKIN = "manceps"
 
 ATLAS_API = "https://cloud.mongodb.com/api/atlas/v2"
 ATLAS_ACCEPT = "application/vnd.atlas.2023-01-01+json"
@@ -307,6 +308,9 @@ def configure_profile(tenant_id: str, uri: str, dispatcher_phone: str) -> Path:
                         "FREIGHT_DISPATCHER_PHONE": dispatcher_phone})
     upsert_env(profile_dir / ".env", secrets_out)
     (profile_dir / "SOUL.md").write_text((PLUGIN_DIR / "profile" / "SOUL.md").read_text())
+    (profile_dir / "skins").mkdir(exist_ok=True)
+    (profile_dir / "skins" / f"{SKIN}.yaml").write_text((PLUGIN_DIR / "profile" / "skins" / f"{SKIN}.yaml").read_text())
+    hermes("-p", tenant_id, "config", "set", "display.skin", SKIN)
     for key in INHERITED_CONFIG:
         value = operator_config_value(key)
         if value not in (None, "", []):

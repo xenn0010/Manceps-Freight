@@ -70,6 +70,20 @@ def test_provision_rejects_bad_tenant_before_any_work(monkeypatch: pytest.Monkey
         provision.provision("Bad Id!", "+12405550100", shared_credentials=True)
 
 
+def test_configure_profile_installs_manceps_identity(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    calls: list[tuple[str, ...]] = []
+    monkeypatch.setattr(provision, "HERMES_HOME", tmp_path)
+    monkeypatch.setattr(provision, "MANAGED_CONFIG", tmp_path / "no-managed.yaml")
+    monkeypatch.setattr(provision, "operator_config_value", lambda key: None)
+    monkeypatch.setattr(provision, "install_plugin", lambda profile_dir: None)
+    monkeypatch.setattr(provision, "hermes", lambda *args: calls.append(args) or "")
+    (tmp_path / "profiles" / "apex-freight").mkdir(parents=True)
+    profile = provision.configure_profile("apex-freight", "mongodb://x", "+12405550100")
+    assert "Manceps" in (profile / "SOUL.md").read_text()
+    assert "agent_name: Manceps" in (profile / "skins" / "manceps.yaml").read_text()
+    assert ("-p", "apex-freight", "config", "set", "display.skin", "manceps") in calls
+
+
 def test_scoped_user_requires_atlas_keys(monkeypatch: pytest.MonkeyPatch) -> None:
     for name in provision.ATLAS_ENV:
         monkeypatch.delenv(name, raising=False)
