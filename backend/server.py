@@ -79,6 +79,8 @@ async def get_status_checks():
 
 # Include the router in the main app
 app.include_router(api_router)
+from voice import router as voice_router  # noqa: E402
+app.include_router(voice_router)
 
 app.add_middleware(
     CORSMiddleware,

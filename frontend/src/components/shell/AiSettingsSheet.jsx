@@ -6,6 +6,7 @@ import { useStore } from "../../store/useStore";
 import { settingsService, feedbackService } from "../../services";
 import { Pill } from "../common/ui";
 import { cn } from "../../lib/utils";
+import { CallingSettings } from "./CallingSettings";
 
 const sel = "h-9 rounded-[10px] border border-[#181A1A]/10 bg-white px-2.5 text-[13px] outline-none focus:border-[#AF6EFF]";
 
@@ -70,6 +71,7 @@ export function AiSettingsSheet() {
             </select>
           </Row>
         </div>
+        <CallingSettings />
         <div className="mt-5 flex items-center gap-2">
           <div className="eyebrow">Rules · {rules.filter((r) => r.status !== "inactive").length} active</div>
           <button type="button" data-testid="settings-add-rule" onClick={() => feedbackService.open("", { source: "AI settings" }, "rule")} className="ml-auto text-[12px] font-medium text-[#7A35DB] hover:underline">Add rule</button>

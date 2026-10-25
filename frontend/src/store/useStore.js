@@ -26,7 +26,7 @@ export const useStore = create(
   persist(
     immer((set) => ({
       ...initialState(),
-      transient: { resetOpen: false, demoOpen: false, voice: { status: "idle", transcript: "" }, feedback: { open: false, text: "", ctx: {}, mode: null }, drawer: null, intake: { open: false, kind: "truck" }, settingsOpen: false },
+      transient: { resetOpen: false, demoOpen: false, voice: { status: "idle", transcript: "" }, feedback: { open: false, text: "", ctx: {}, mode: null }, drawer: null, intake: { open: false, kind: "truck" }, settingsOpen: false, callConfirm: null },
 
       mutate: (fn) => set((s) => void fn(s)),
       reset: () =>

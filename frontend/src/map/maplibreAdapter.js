@@ -181,7 +181,7 @@ export function createMaplibreAdapter(container, handlers) {
     lastFit = { coords, opts };
     const b = coords.reduce((acc, c) => acc.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
     const h = container.clientHeight;
-    map.fitBounds(b, { padding: { top: Math.min(110, h * 0.2), bottom: Math.min(48, h * 0.09), left: 90, right: 90 }, maxZoom: opts.maxZoom ?? 7.2, duration: opts.instant ? 0 : 900 });
+    map.fitBounds(b, { padding: { top: Math.min(110, h * 0.2), bottom: Math.min(48, h * 0.09), left: opts.padLeft ?? 90, right: 90 }, maxZoom: opts.maxZoom ?? 7.2, duration: opts.instant ? 0 : 900 });
   }
 
   function createTruck(t) {

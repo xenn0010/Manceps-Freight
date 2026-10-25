@@ -1,12 +1,12 @@
-import { Info, AlertTriangle, ArrowUpRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { Info, ArrowUpRight, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useStore } from "../../store/useStore";
 import { planLedger, summarize, previewMetrics } from "../../lib/metrics";
-import { isAwaitingConfirmation, openAttention } from "../../lib/selectors";
+import { isAwaitingConfirmation } from "../../lib/selectors";
 import { money, pct, num } from "../../lib/format";
 import { openLink } from "../../lib/links";
-import { AnimatedNumber, Pill } from "../common/ui";
+import { AnimatedNumber } from "../common/ui";
 import { AreaLine, BarSpark } from "../common/charts";
 import { cn } from "../../lib/utils";
 
@@ -62,51 +62,6 @@ function KpiCard({ id, label, wash, active, onClick, children, extra }) {
   );
 }
 
-function AttentionCard() {
-  const data = useStore((s) => s.data);
-  const items = openAttention(data);
-  return (
-    <div className="glass flex min-h-0 flex-col gap-1 overflow-hidden p-2" data-testid="attention-strip">
-      <div className="flex items-center justify-between px-2">
-        <span className="text-[12.5px] font-medium">Needs you</span>
-        <span className="rounded-md bg-white/80 px-1.5 text-[11px] font-semibold tnum" data-testid="attention-count">{items.length}</span>
-      </div>
-      <AnimatePresence initial={false}>
-        {items.map((a) => {
-          const risk = a.kind === "risk";
-          const unit = data.trucks[a.truckId].unit;
-          return (
-            <motion.button
-              layout
-              key={a.id}
-              type="button"
-              data-testid={`attention-item-${unit}`}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: 24, transition: { duration: 0.25 } }}
-              onClick={() => openLink(a.link)}
-              className={cn("flex min-h-0 flex-1 items-center gap-2.5 rounded-[14px] px-3 py-1 text-left transition-colors", risk ? "bg-[#FFC46D]/40 hover:bg-[#FFC46D]/55" : "bg-white/80 hover:bg-white")}
-            >
-              <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-[10px]", risk ? "bg-[#FFC46D] text-[#7A4300]" : "bg-[#AF6EFF] text-white")}>
-                {risk ? <AlertTriangle className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
-              </span>
-              <span className="min-w-0 leading-tight">
-                <span className="block truncate text-[13px] font-semibold">{a.title} · Truck {unit}</span>
-                <span className={cn("block truncate text-[11.5px] tnum", risk ? "text-[#C2282D]" : "text-[#6B6F76]")}>{a.summary}</span>
-              </span>
-            </motion.button>
-          );
-        })}
-      </AnimatePresence>
-      {items.length === 0 && (
-        <div className="flex flex-1 items-center gap-2 rounded-[14px] bg-[#A1E688]/35 px-3 text-[13px] font-medium" data-testid="attention-all-clear">
-          <CheckCircle2 className="h-4 w-4 text-[#2C6A18]" /> All clear
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function KpiRow() {
   const data = useStore((s) => s.data);
   const panel = useStore((s) => s.ui.panel);
@@ -121,7 +76,7 @@ export function KpiRow() {
   const highEmpty = m.emptyPct > 15;
 
   return (
-    <section className="grid h-[124px] shrink-0 grid-cols-[1fr_1fr_1fr_minmax(300px,0.95fr)] grid-rows-[minmax(0,1fr)] gap-3" data-testid="kpi-row">
+    <section className="grid h-[124px] shrink-0 grid-cols-3 grid-rows-[minmax(0,1fr)] gap-3" data-testid="kpi-row">
       <KpiCard id="revenue" label="Booked revenue" wash="wash-purple" active={isActive("revenue")} onClick={() => togglePanel("metric", "revenue")} extra={<CurrentPlanInfo />}>
         <div className="flex items-end justify-between gap-2">
           <div>
@@ -152,7 +107,6 @@ export function KpiRow() {
           <BarSpark values={emptyVals} highlight={emptyVals.indexOf(Math.max(...emptyVals))} color={highEmpty ? "#FFC46D" : "#A1E688"} testid="metric-empty-spark" />
         </div>
       </KpiCard>
-      <AttentionCard />
     </section>
   );
 }

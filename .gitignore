@@ -88,3 +88,4 @@ mobile/.metro-cache/
 # overlay black-box crash/user-report dumps — session data, never history
 **/.emergent/recordings/
 frontend/node_modules/.cache/default-development/20.pack
+frontend/node_modules/.cache/default-development/19.pack

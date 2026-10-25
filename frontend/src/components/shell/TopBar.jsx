@@ -4,7 +4,7 @@ import { useStore } from "../../store/useStore";
 import { headerSummary } from "../../lib/selectors";
 import { clockLabel } from "../../lib/format";
 import { voiceService, settingsService } from "../../services";
-import { NotificationsPopover } from "./NotificationsPopover";
+import { BriefingToggle } from "../dashboard/BriefingStream";
 import { DemoScriptPopover } from "./DemoScriptPopover";
 import { IconButton } from "../common/ui";
 import { cn } from "../../lib/utils";
@@ -108,7 +108,7 @@ export function TopBar() {
         <IconButton label="AI settings" data-testid="header-ai-settings-button" onClick={() => settingsService.open()}>
           <SlidersHorizontal className="h-[17px] w-[17px]" />
         </IconButton>
-        <NotificationsPopover />
+        <BriefingToggle />
         <DemoScriptPopover />
         <IconButton label="Reset demo" data-testid="reset-demo-button" onClick={() => setTransient({ resetOpen: true })}>
           <RotateCcw className="h-[17px] w-[17px]" />

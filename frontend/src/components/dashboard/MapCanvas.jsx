@@ -11,6 +11,7 @@ import { ScheduleView } from "./ScheduleView";
 import { executionService } from "../../services/phase2Services";
 import { FastForward, BookOpen } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { BriefingStream } from "./BriefingStream";
 
 function ModeSwitch() {
   const mode = useStore((s) => s.ui.mapMode);
@@ -109,12 +110,12 @@ export function MapCanvas() {
   useEffect(() => {
     const f = featuresRef.current;
     if (selected) api.current.fitTo(f.focus[selected], { maxZoom: 7.6 });
-    else api.current.fitTo(f.fleet, { maxZoom: 7.2 });
+    else api.current.fitTo(f.fleet, { maxZoom: 7.2, padLeft: 344 });
   }, [selected, fitNonce]);
 
   const fitFleet = () => {
     if (selected) api.current.fitTo(featuresRef.current.focus[selected], { maxZoom: 7.6 });
-    else api.current.fitTo(featuresRef.current.fleet, { maxZoom: 7.2 });
+    else api.current.fitTo(featuresRef.current.fleet, { maxZoom: 7.2, padLeft: 344 });
   };
 
   return (
@@ -141,6 +142,7 @@ export function MapCanvas() {
           <FastForward className="h-3.5 w-3.5" /> Advance time
         </button>
       </div>}
+      {mode === "map" && <BriefingStream />}
       <AnimatePresence>{mode === "schedule" && <ScheduleView />}</AnimatePresence>
     </section>
   );

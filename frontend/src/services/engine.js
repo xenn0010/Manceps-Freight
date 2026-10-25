@@ -157,7 +157,7 @@ function pushDriverMessage(d, id, from, text) {
   conv.messages.push({ id, from, at: d.clockMin, text });
 }
 
-function sendInstructions(d, p, now, events) {
+export function sendInstructions(d, p, now, events) {
   if (p.driverStatus !== "none") return;
   d.clockMin += 1;
   p.driverStatus = "instructions_sent";
@@ -168,7 +168,7 @@ function sendInstructions(d, p, now, events) {
   events.push({ kind: "info", title: "Driver instructions sent", body: "Texted Ava Reed (simulated)", link: { type: "thread", id: "CONV-DRV-101" } });
 }
 
-function acknowledge(d, p, events) {
+export function acknowledge(d, p, events) {
   if (p.driverStatus !== "instructions_sent") return;
   d.clockMin += 2;
   p.driverStatus = "acknowledged";
@@ -216,8 +216,8 @@ export function logBrokerConfirmation(d, id, now, events) {
 // Advances every simulated timer that is due. Safe to call repeatedly and after reloads.
 export function tick(d, now, events) {
   Object.values(d.data.proposals).forEach((p) => {
-    if (p.status === "terms_approved" && p.handledBy === "ai" && now - p.statusChangedAt >= TIMING.termsToCall) startCall(d, p, now, events);
-    if (p.status === "booked" && p.driverStatus === "none" && now - p.statusChangedAt >= TIMING.bookToInstructions) sendInstructions(d, p, now, events);
+    if (p.status === "terms_approved" && p.handledBy === "ai" && d.data.calling?.mode !== "live" && now - p.statusChangedAt >= TIMING.termsToCall) startCall(d, p, now, events);
+    if (p.status === "booked" && p.driverStatus === "none" && d.data.calling?.mode !== "live" && now - p.statusChangedAt >= TIMING.bookToInstructions) sendInstructions(d, p, now, events);
     if (p.driverStatus === "instructions_sent" && now - p.driverStatusAt >= TIMING.instructionsToAck) acknowledge(d, p, events);
   });
   Object.values(d.data.calls).forEach((c) => {

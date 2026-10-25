@@ -40,10 +40,14 @@ export function CommandBar() {
         <AnimatePresence mode="wait" initial={false}>
           {live ? (
             <motion.div key="voice" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex items-center gap-3" data-testid="voice-status">
-              {voice.status === "listening" ? (
+              {voice.status === "listening" || voice.status === "connecting" || voice.status === "speaking" ? (
                 <>
                   <Waveform />
-                  <span className="text-[13.5px] font-medium text-[#7A35DB]">Listening…</span>
+                  <span className="shrink-0 text-[13.5px] font-medium text-[#7A35DB]" data-testid="voice-state">
+                    {voice.status === "connecting" ? "Connecting…" : voice.status === "speaking" ? "FreightOS speaking" : "Listening…"}
+                  </span>
+                  {voice.mode === "live" && voice.transcript && <span className="truncate text-[13px] text-[#4B4F55]" data-testid="voice-caption">“{voice.transcript}”</span>}
+                  <span className="ml-auto shrink-0 rounded-md bg-[#181A1A]/[0.06] px-1.5 py-0.5 text-[10.5px] font-semibold text-[#4B4F55]" data-testid="voice-mode-badge">{voice.mode === "live" ? "Live voice" : "Demo voice"}</span>
                 </>
               ) : (
                 <span className="truncate text-[14px] font-medium" data-testid="voice-transcript">“{voice.transcript}”</span>

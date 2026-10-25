@@ -2,10 +2,11 @@ import geo from "./routeGeometry.json";
 import { bearing, nearestIndex } from "./geo";
 import { applyPhase2 } from "./seed2";
 import { applyPhase3 } from "./seed3";
+import { applyPhase4 } from "./seed4";
 
 export const COST_PER_MILE = 1.8;
 export const START_CLOCK = 600; // minutes since Mon 26 Oct 2026 00:00 PT
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 export const ROUTES = geo;
 
 const R = (id) => geo[id].coordinates;
@@ -201,7 +202,7 @@ const notifications = [
 ].map((n) => ({ ...n, createdAt: SEED_ISO }));
 
 export function createSeed() {
-  return applyPhase3(applyPhase2(JSON.parse(
+  return applyPhase4(applyPhase3(applyPhase2(JSON.parse(
     JSON.stringify({
       schemaVersion: SCHEMA_VERSION,
       seq: 100,
@@ -213,5 +214,5 @@ export function createSeed() {
         "TASK-L201": { id: "TASK-L201", text: "Waiting on one broker", status: "waiting", truckId: "T-102" },
       },
     })
-  )));
+  ))));
 }

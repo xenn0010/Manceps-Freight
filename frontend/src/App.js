@@ -11,12 +11,15 @@ import FleetPage from "./pages/Fleet";
 import { RecordDrawer } from "./components/fleet/RecordDrawer";
 import { IntakeDialog } from "./components/fleet/IntakeDialog";
 import { AiSettingsSheet } from "./components/shell/AiSettingsSheet";
+import { CallConfirmCard } from "./components/shell/CallConfirmCard";
+import { liveCallService } from "./services";
 
 function App() {
   const view = useStore((s) => s.ui.view);
   useHotkeys();
   useEffect(() => {
     startSimulation();
+    liveCallService.resume();
   }, []);
   return (
     <div className="h-screen flex flex-col px-5 pb-4 overflow-hidden" data-testid="app-shell">
@@ -27,6 +30,7 @@ function App() {
       <RecordDrawer />
       <IntakeDialog />
       <AiSettingsSheet />
+      <CallConfirmCard />
       <Toaster
         position="bottom-center"
         offset={92}

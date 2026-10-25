@@ -50,3 +50,13 @@ Build Phase 1 of FreightOS, a premium AI-dispatcher operations web app for a hac
 - AI settings sheet (components/shell/AiSettingsSheet.jsx): negotiation floor, max counter steps, auto-contact, approval locked on, driver tone, rules toggle/delete; applied in engine2 (counter limit/floor note, Ben text tone) and AI summary.
 - Services: services/engine3.js + fleetService.js (fleetService, intakeService, settingsService). Seed: data/seed3.js; SCHEMA_VERSION 3.
 - Testing: iteration_3 — 12/12 Phase-3 journeys pass; testing agent pruned stale map markers after Reset.
+
+
+## Phase 4 — built (Oct 2026), live parts pending keys
+- Backend /app/backend/voice.py: /api/voice/config, /validate, /calls (POST, idempotent), /calls/{id} (status, transcript, analysis), /calls/{id}/end. Private key server-only.
+- Frontend seams: services/contactsService.js, callScripts.js (task spec → transient assistant on server), liveCallService.js (live dial + 1.5 s polling, simulated runner, retry, resume), engine4.js (idempotent outcome → store transitions), vapiVoice.js (@vapi-ai/web dispatcher, client tools, snapshot + add-message), map/mapAdapter.js (Google first, auto MapLibre fallback), map/googleAdapter.js (styles array, OverlayView markers, polylines).
+- UI: BriefingStream (replaces notification popover), CallConfirmCard, LiveCallPanel, CallingSettings (Simulated default). Live mode suppresses auto simulated calls/texts; every real call needs click + confirm.
+- Testing iteration_4: backend 3/3; JRN-57/65/66/67/70 pass; JRN-64 UI race fixed (dial disabled until config loads); JRN-68 flag = attention strip kept per REQ-156. JRN-56/58/59/61–63 blocked on keys.
+- Keys (VAPI_PRIVATE_KEY, VAPI_PHONE_NUMBER_ID, DEMO_DRIVER_PHONE, REACT_APP_VAPI_PUBLIC_KEY, REACT_APP_GOOGLE_MAPS_API_KEY) not yet saved via secure card.
+
+- Oct 2026 (user decision): "Needs you" KPI tile removed (REQ-156 updated). Decisions are carried by the AI briefing stream (inline action) plus attention chips (attention-chip-ATT-*) at the top of the stream, all from the same store. KPI row is now 3 metric cards.

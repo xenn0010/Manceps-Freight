@@ -1,9 +1,9 @@
-import { AlertTriangle, Lock, Clock3, Sparkles, ArrowRight, MessageSquare, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Lock, Clock3, Sparkles, ArrowRight, MessageSquare, Phone, CheckCircle2 } from "lucide-react";
 import { useStore } from "../../store/useStore";
 import { truckCommitments } from "../../lib/selectors";
 import { money, stamp } from "../../lib/format";
 import { openLink } from "../../lib/links";
-import { exceptionService, feedbackService } from "../../services";
+import { exceptionService, feedbackService, liveCallService } from "../../services";
 import { Field, Pill, TruckImage } from "../common/ui";
 import { StopLine, TripProgress } from "../common/charts";
 import { PanelShell, Section } from "./PanelShell";
@@ -39,6 +39,7 @@ function ExceptionBlock({ trip, data }) {
   }
   if (trip.revision) {
     const ds = trip.revision.driverStatus;
+    const live = data.calling?.mode === "live";
     return (
       <div className="rounded-[18px] bg-[#A1E688]/30 p-3.5 ring-1 ring-[#A1E688]" data-testid="exception-resolved">
         <div className="flex items-center gap-2 text-[13.5px] font-semibold"><CheckCircle2 className="h-4 w-4 text-[#2C6A18]" /> On track · rescheduled</div>
@@ -46,6 +47,7 @@ function ExceptionBlock({ trip, data }) {
         <div className="mt-2 flex flex-wrap gap-1.5">
           <Pill tone={ds === "acknowledged" ? "green" : ds === "sent" ? "purple" : "grey"} data-testid="ben-text-status">{ds === "acknowledged" ? "Ben Ortiz acknowledged" : ds === "sent" ? "Text sent to Ben Ortiz" : "Preparing driver text"}</Pill>
           <button type="button" onClick={() => openLink({ type: "thread", id: "CONV-DRV-102" })} className="text-[12px] font-medium text-[#7A35DB] hover:underline">Texts</button>
+          {live && ds === "none" && <button type="button" data-testid="call-ben-button" onClick={() => liveCallService.request("D-102", "driver_window", { type: "trip", id: "L-201" })} className="rounded-lg bg-[#181A1A] px-2 py-0.5 text-[12px] font-medium text-white">Call Ben with new window</button>}
           {call && <button type="button" onClick={() => openLink({ type: "call", id: call.id })} className="text-[12px] font-medium text-[#7A35DB] hover:underline">Broker call</button>}
         </div>
       </div>
@@ -58,7 +60,7 @@ function ExceptionBlock({ trip, data }) {
       {call ? (
         <button type="button" data-testid="open-reappointment-call" onClick={() => openLink({ type: "call", id: call.id })} className="w-full rounded-[14px] bg-[#181A1A] py-2.5 text-[13px] font-semibold text-white">View broker call</button>
       ) : (
-        <button type="button" data-testid="call-broker-appointment-button" onClick={() => { exceptionService.callBrokerForAppointment(); const id = useStore.getState().data.trips["L-201"].reapptCallId; if (id) openLink({ type: "call", id }); }} className="w-full rounded-[14px] bg-[#AF6EFF] py-2.5 text-[13px] font-semibold text-white hover:bg-[#9F5BF5]">Call broker for new appointment</button>
+        <button type="button" data-testid="call-broker-appointment-button" onClick={() => { if (useStore.getState().data.calling?.mode === "live") return liveCallService.request("BRK-CENTRAL", "broker_reappointment", { type: "trip", id: "L-201" }); exceptionService.callBrokerForAppointment(); const id = useStore.getState().data.trips["L-201"].reapptCallId; if (id) openLink({ type: "call", id }); }} className="w-full rounded-[14px] bg-[#AF6EFF] py-2.5 text-[13px] font-semibold text-white hover:bg-[#9F5BF5]">Call broker for new appointment</button>
       )}
     </div>
   );
@@ -220,6 +222,11 @@ export default function TruckPanel({ id }) {
         {data.conversations[`CONV-DRV-${t.unit}`] && (
           <button type="button" data-testid="open-driver-thread" onClick={() => openLink({ type: "thread", id: `CONV-DRV-${t.unit}` })} className="flex items-center gap-1.5 rounded-[14px] bg-white/85 px-3 py-2.5 text-[13px] font-medium hover:bg-white">
             <MessageSquare className="h-4 w-4" /> Texts
+          </button>
+        )}
+        {t.driverId && (
+          <button type="button" data-testid="call-driver-button" onClick={() => liveCallService.request(t.driverId, "manual", null, `Check in with ${data.drivers[t.driverId]?.name} about Truck ${t.unit}`)} className="flex items-center gap-1.5 rounded-[14px] bg-white/85 px-3 py-2.5 text-[13px] font-medium hover:bg-white">
+            <Phone className="h-4 w-4" /> Call
           </button>
         )}
         <button type="button" data-testid="truck-feedback-button" onClick={() => feedbackService.open("", { truckId: id, source: `Truck ${t.unit} panel` })} className="rounded-[14px] bg-white/85 px-3 py-2.5 text-[13px] font-medium hover:bg-white">Feedback</button>

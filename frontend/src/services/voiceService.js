@@ -1,6 +1,7 @@
 import { useStore } from "../store/useStore";
 import { VOICE_PRESET } from "../data/scripts";
 import { aiService } from "./aiService";
+import { vapiVoice } from "./vapiVoice";
 import { toast } from "sonner";
 
 // Simulated microphone: listening waveform -> transcribed preset -> scripted answer.
@@ -13,13 +14,23 @@ const setVoice = (v) => useStore.getState().setVoice(v);
 
 export const voiceService = {
   toggle() {
-    const { status } = useStore.getState().transient.voice;
-    if (status !== "idle") return this.cancel();
+    const { status, mode } = useStore.getState().transient.voice;
+    if (status !== "idle") return mode === "live" ? vapiVoice.stop() : this.cancel();
+    if (vapiVoice.available() && !window.location.search.includes("voice=demo"))
+      return vapiVoice.start((reason) => {
+        console.warn(`[voice] ${reason}`);
+        vapiVoice.stop();
+        toast("Voice unavailable, using demo voice", { description: reason });
+        this.demo();
+      });
+    this.demo();
+  },
+  demo() {
     clear();
-    setVoice({ status: "listening", transcript: "" });
-    timers.push(setTimeout(() => setVoice({ status: "transcribing", transcript: "" }), 2600));
+    setVoice({ status: "listening", transcript: "", mode: "demo", notice: "Demo voice" });
+    timers.push(setTimeout(() => setVoice({ status: "transcribing", transcript: "", mode: "demo" }), 2600));
     VOICE_PRESET.split(" ").forEach((_, i, words) =>
-      timers.push(setTimeout(() => setVoice({ status: "transcribing", transcript: words.slice(0, i + 1).join(" ") }), 2700 + i * 140))
+      timers.push(setTimeout(() => setVoice({ status: "transcribing", transcript: words.slice(0, i + 1).join(" "), mode: "demo" }), 2700 + i * 140))
     );
     timers.push(
       setTimeout(() => {

@@ -73,7 +73,7 @@ export function completeReappointment(d, c, now, events) {
 function tickBen(d, now, events) {
   const r = d.data.trips["L-201"].revision;
   if (!r) return;
-  if (r.driverStatus === "none" && now - r.driverStatusAt >= TIMING2.benText) {
+  if (r.driverStatus === "none" && d.data.calling?.mode !== "live" && now - r.driverStatusAt >= TIMING2.benText) {
     r.driverStatus = "sent";
     r.driverStatusAt = now;
     pushMsg(d, "CONV-DRV-102", "MSG-BEN-REAPPT", "ai", TONE_TEXT[d.data.settings?.driverTone] || BEN_TEXT);

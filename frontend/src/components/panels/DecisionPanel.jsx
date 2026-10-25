@@ -6,7 +6,7 @@ import { offerEconomics, previewMetrics, truckCpm } from "../../lib/metrics";
 import { STATUS_LABEL, stepReached } from "../../lib/selectors";
 import { money, signedMoney, pct, num } from "../../lib/format";
 import { openLink } from "../../lib/links";
-import { dispatchService, termsService, feedbackService } from "../../services";
+import { dispatchService, termsService, feedbackService, liveCallService } from "../../services";
 import { Pill } from "../common/ui";
 
 function VersionDiff({ p, offer, seg, cpm }) {
@@ -232,6 +232,12 @@ export default function DecisionPanel({ id }) {
   return (
     <PanelShell testid="decision-panel" eyebrow={`Return load · Truck 101 · v${p.version}`} title={`Book ${offer.origin === "Los Angeles" ? "LA" : offer.origin} → ${offer.destination} · ${money(offer.rate)}`} simulated="Demo data" footer={<Actions key={`${p.status}-${p.handledBy}`} p={p} />}>
       <StatusStepper reached={stepReached(p)} halted={["rejected", "changes_requested"].includes(p.status) || p.handledBy === "dispatcher"} />
+      {data.calling?.mode === "live" && p.status === "terms_approved" && (
+        <button type="button" data-testid="live-call-broker-button" onClick={() => liveCallService.request("BRK-PACIFIC", "broker_confirmation", { type: "proposal", id: p.id, version: p.version })} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[14px] bg-[#181A1A] py-2.5 text-[13px] font-semibold text-white"><PhoneCall className="h-4 w-4" /> Call Maya Lin to confirm</button>
+      )}
+      {data.calling?.mode === "live" && p.status === "booked" && p.driverStatus === "none" && (
+        <button type="button" data-testid="live-call-driver-button" onClick={() => liveCallService.request("D-101", "driver_instructions", { type: "proposal", id: p.id, version: p.version })} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[14px] bg-[#181A1A] py-2.5 text-[13px] font-semibold text-white"><PhoneCall className="h-4 w-4" /> Call Ava with instructions</button>
+      )}
       <StatusLine p={p} data={data} />
       <div className="rounded-[20px] bg-white/85 p-4 ring-1 ring-[#181A1A]/[0.05]" data-testid="decision-lead">
         <div className="flex items-center gap-2">

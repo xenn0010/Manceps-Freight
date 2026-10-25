@@ -1,0 +1,54 @@
+{
+  "summary": "Phase 4 end-to-end testing (Simulated mode only, no keys). Backend 3/3 pass. Frontend journeys mostly pass with ONE critical regression against JRN-68: the old 'Needs you' AttentionCard tile is still rendered in the KPI row (KpiRow.jsx) despite the requirement that it be fully replaced by the briefing-stream. One probable UX race in Live-mode CallConfirmCard where notConfigured flag renders only after /api/voice/config resolves (dial button can be briefly enabled). Simulated call flow, map fallback (invalid gmapsKey -> MapLibre in ~10s), calling settings mode toggle, broker missing prompts, number persistence, and no-double-dial were all verified. Backend /api/voice/calls correctly 503s when keys are absent.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "KpiRow.AttentionCard", "issue": "JRN-68 violated: the 'Needs you' tile (data-testid=attention-strip with attention-count and attention-item-* rows) still exists in the dashboard top row. Journey requires it to be removed/replaced entirely by the briefing-stream.", "selector": "[data-testid='attention-strip']", "priority": "HIGH"},
+      {"component": "CallConfirmCard", "issue": "In Live mode, `notConfigured` is computed as `live && cfg && !cfg.configured`. While /api/voice/config is in-flight (cfg === null) the dial button is NOT disabled and call-confirm-not-configured is NOT shown, so a user can click Dial before the server-not-configured state is known. Backend still rejects with 503, but UI is misleading. Suggest defaulting notConfigured to true in live mode until cfg resolves, or disabling dial while cfg is loading.", "selector": "[data-testid='call-confirm-dial']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_journeys": {
+    "JRN-57 Map fallback": "PASS - /?gmapsKey=invalid-test-key -> within ~10s window.__freightosMap === {provider:'maplibre', reason:'Google tiles did not load within 10 s'}. 4 truck markers (truck-marker-101..104) and 7 city labels (san-francisco, oakland, san-jose, sacramento, stockton, fresno, los-angeles) render. Routes/legend/Fresno leader preserved.",
+    "JRN-64 Failure path (partial)": "PARTIAL - livecall-retry and livecall-run-simulated buttons exist in LiveCallPanel.jsx (confirmed in source). Could not reliably reproduce call-confirm-not-configured in UI due to the cfg race described above; backend path (POST /api/voice/calls -> 503) is covered by backend_test.",
+    "JRN-65 No double dial": "PASS - Triple-click on call-confirm-dial in Simulated mode produced exactly one livecall-panel; livecall-mode-badge='Simulated'; 5 transcript lines; livecall-outcome-text='Call completed'.",
+    "JRN-66 Secrets": "PASS - /api/voice/config returns {configured:false, demoDriverPhone:''}. No private key present in client bundle (no VAPI_PRIVATE_KEY references found in frontend src).",
+    "JRN-67 Simulated mode": "PASS - call-confirm-mode shows 'Simulated' and call-confirm-dial reads 'Run simulated call'; livecall-panel + status + transcript lines + livecall-outcome-text appear; approve O-1 still runs existing simulated broker call (Phase 1 flow intact).",
+    "JRN-68 Briefing replaces Needs you": "FAIL - briefing-stream, briefing-item-*, briefing-text, briefing-speak-toggle, briefing-toggle, briefing-action-* (exactly 1 decision action) ALL render correctly. However, the old 'Needs you' tile is still present (KpiRow.jsx AttentionCard: 'attention-strip', 'attention-count', 'attention-item-102', 'attention-item-101' visible in screenshots). The journey explicitly requires 'No Needs you / Updates tab exists.'",
+    "JRN-69 Speak updates": "PARTIAL - briefing-speak-toggle persists via settingsService.update('speakUpdates', …). TTS audibility not verified (headless).",
+    "JRN-70 Calling settings": "PASS - header-ai-settings-button -> calling-settings. calling-mode-simulated default (aria-checked=true), calling-mode-live present. All contact rows present: calling-number-{D-101..D-104} placeholder 'Default demo number', calling-number-{BRK-PACIFIC|BRK-DESERT|BRK-CENTRAL} placeholder 'Add phone (E.164)' and empty. Switching to Live surfaces calling-missing-{BRK-PACIFIC|BRK-DESERT|BRK-CENTRAL}. Edited D-101 to '+16093021443', reloaded -> value persisted. Reset-demo clears custom numbers (verified in iteration_3).",
+    "Simulated call panel": "PASS - livecall-panel single instance, livecall-mode-badge, livecall-status, livecall-steps, livecall-objective, livecall-line-* transcript, livecall-outcome-text, livecall-end/take-over, livecall-retry/livecall-run-simulated present in source."
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase4_voice.py",
+    "/app/test_reports/pytest/phase4_voice.xml"
+  ],
+  "action_items": [
+    "CRITICAL (JRN-68): Remove the 'Needs you' AttentionCard tile from KpiRow.jsx (and any surrounding 'Needs you / Updates' popover/tab). The briefing-stream is the sole surface for new attention items per Phase 4 requirements. Also remove the attention-* testids once the component is deleted.",
+    "MEDIUM (JRN-64 UX): In CallConfirmCard.jsx disable call-confirm-dial while `cfg` is null in live mode, or treat null as notConfigured, so the Live-but-not-configured state is unambiguous (today the dial button is briefly clickable until /api/voice/config resolves).",
+    "Minor: on JRN-64, surface call-confirm-not-configured even when cfg is still loading if an environment hint indicates no public Vapi key is set."
+  ],
+  "critical_code_review_comments": [
+    "KpiRow.jsx AttentionCard is dead product UX per Phase 4; delete the component and remove openAttention imports to avoid duplicate attention state (briefing items now carry the same decisions).",
+    "CallConfirmCard.jsx notConfigured race: `live && cfg && !cfg.configured` leaves a window where cfg is null and the Live-call dial button is enabled. Should be `live && (!cfg || !cfg.configured)` in live mode, with the dial button disabled while fetching.",
+    "voice.py _by_key is an in-memory dict for idempotency; it will leak across requests and reset on reload. Fine for the hackathon demo but noted.",
+    "mapAdapter.js uses URLSearchParams `gmapsKey` as an override which is useful for dev checks; make sure production builds strip or ignore the override param to avoid key injection via URL."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_phase4_voice.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (3/3)",
+    "frontend": "~85% - JRN-57/65/66/67/70 pass; JRN-68 fails (Needs you tile still present); JRN-64 partial (UI race); JRN-56/58/59/61/62/63 blocked-on-keys and out of scope"
+  },
+  "test_credentials": "none (no auth; Vapi keys intentionally absent)",
+  "seed_data_creation": "localStorage cleared before each run; D-101 phone set to +16093021443 for persistence check and left in local storage (clear before next run).",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 4 testids verified: briefing-stream, briefing-toggle, briefing-speak-toggle, briefing-pending-dot, briefing-all, briefing-item-<id>, briefing-text, briefing-action-<id>. CallConfirmCard: call-confirm-card, call-confirm-number, call-confirm-mode (Simulated|LIVE CALL), call-confirm-close, call-confirm-purpose, call-confirm-number-prompt, call-confirm-number-input, call-confirm-number-save, call-confirm-not-configured, call-confirm-cancel, call-confirm-dial ('Run simulated call' | 'Call live'). LiveCallPanel: livecall-panel, livecall-mode-badge, livecall-status, livecall-objective, livecall-steps, livecall-failed, livecall-retry, livecall-run-simulated, livecall-line-<i>, livecall-outcome-text, livecall-take-over, livecall-end. CallingSettings (inside AI settings sheet): calling-settings, calling-mode-simulated, calling-mode-live, calling-contact-<id>, calling-number-<id>, calling-call-<id>, calling-missing-<id>. TruckPanel: call-driver-button. Backend: GET /api/voice/config -> {configured, demoDriverPhone}; POST /api/voice/calls -> 503 when keys missing. Note the Live-mode cfg race in CallConfirmCard - add a wait_for /api/voice/config completion before asserting notConfigured state. Known regression: 'Needs you' AttentionCard still in KpiRow (JRN-68 bug).",
+  "rca of the issue": "JRN-68 regression RCA: BriefingStream was added as a NEW surface alongside the existing AttentionCard, but the AttentionCard JSX block in KpiRow.jsx (lines ~65-108) was never removed. Grep for 'Needs you' finds the literal string on KpiRow.jsx:71. Reproduction: open the dashboard with cleared localStorage -> top-right KPI row shows 'Needs you | 2' with attention-item-102 (Delivery at risk) and attention-item-101 (Return load ready). Fix: delete AttentionCard() from KpiRow.jsx, remove its slot from the KpiRow grid, and drop the openAttention import; verify briefing items still surface the two decisions (they do - briefing-item for Truck 102 delay and Truck 101 return load are present)."
+}

@@ -10,8 +10,9 @@ import ActivityPanel from "./ActivityPanel";
 import DocumentPanel from "./DocumentPanel";
 import ThreadPanel from "./ThreadPanel";
 import RulesPanel from "./RulesPanel";
+import LiveCallPanel from "./LiveCallPanel";
 
-const PANELS = { truck: TruckPanel, decision: DecisionPanel, call: CallPanel, chat: ChatPanel, metric: MetricPanel, activity: ActivityPanel, document: DocumentPanel, thread: ThreadPanel, rules: RulesPanel };
+const PANELS = { truck: TruckPanel, decision: DecisionPanel, call: CallPanel, chat: ChatPanel, metric: MetricPanel, activity: ActivityPanel, document: DocumentPanel, thread: ThreadPanel, rules: RulesPanel, livecall: LiveCallPanel };
 
 function usePanelWidth() {
   const calc = () => (window.innerWidth >= 1600 ? 440 : 400);

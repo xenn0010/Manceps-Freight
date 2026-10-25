@@ -8,3 +8,6 @@ export { demoScript, DEMO_STEPS, DEMO_SCENARIOS } from "./demoScript";
 export { startSimulation } from "./runtime";
 export { exceptionService, executionService, termsService, feedbackService } from "./phase2Services";
 export { fleetService, intakeService, settingsService } from "./fleetService";
+export { liveCallService } from "./liveCallService";
+export { contactsService } from "./contactsService";
+export { callScripts } from "./callScripts";

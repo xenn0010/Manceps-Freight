@@ -116,7 +116,7 @@ export function createFromIntake(d, kind, form, events) {
   return true;
 }
 
-export const SETTING_LABEL = { negotiationFloor: "Negotiation floor", maxCounterSteps: "Max counter steps", autoContactBrokers: "Auto-contact brokers", driverTone: "Driver message tone" };
+export const SETTING_LABEL = { speakUpdates: "Speak updates", negotiationFloor: "Negotiation floor", maxCounterSteps: "Max counter steps", autoContactBrokers: "Auto-contact brokers", driverTone: "Driver message tone" };
 const fmt = (k, v) => (k === "negotiationFloor" ? `$${Number(v).toFixed(2)}/mi` : typeof v === "boolean" ? (v ? "On" : "Off") : String(v));
 
 export function updateSetting(d, key, value) {
