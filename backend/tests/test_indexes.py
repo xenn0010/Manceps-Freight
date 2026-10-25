@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import importlib
-import sys
 from types import ModuleType
 from typing import Any
 
-from conftest import PLUGIN_DIR, SIGNUP_API_DIR, load_module
+from conftest import SIGNUP_API_DIR, load_module, plugin_module
 
 from manceps_core.indexes import (
     FIRM_INDEXES,
@@ -18,7 +16,6 @@ from manceps_core.indexes import (
 )
 from manceps_core.mongo import MongoClientT, MongoDb
 
-PLUGIN_PACKAGE = "hf_probe_plugin"
 PHASE1_FIRM = {
     "carriers", "drivers", "trucks", "brokers", "broker_checks", "contacts", "facilities", "notes", "consent_events",
     "loads", "load_events", "approvals", "imports", "import_rows", "exports", "events", "audit",
@@ -35,11 +32,7 @@ def _plugin_store() -> ModuleType:
     Returns:
         The plugin store module.
     """
-    if PLUGIN_PACKAGE not in sys.modules:
-        package = ModuleType(PLUGIN_PACKAGE)
-        package.__path__ = [str(PLUGIN_DIR)]
-        sys.modules[PLUGIN_PACKAGE] = package
-    return importlib.import_module(f"{PLUGIN_PACKAGE}.store")
+    return plugin_module("store")
 
 
 def _indexes(db: MongoDb) -> dict[str, Any]:

@@ -8,10 +8,11 @@ import structlog
 from fastapi import Request
 from pymongo.errors import PyMongoError
 
+from manceps_core.brokers.reference import REFERENCE_DB
 from manceps_core.clock import Clock
 from manceps_core.indexes import ensure_platform_indexes
 from manceps_core.mongo import MongoClientT, MongoDb
-from manceps_core.tenancy import TenantDb
+from manceps_core.tenancy import Principal, TenantDb
 
 from .auth.tokens import TokenService
 from .integrations.configured import Integrations
@@ -49,6 +50,14 @@ class AppContext:
         self.indexes_ready = True
         return True
 
+    def reference_db(self) -> MongoDb:
+        """Return the shared, read-only FMCSA reference database.
+
+        Returns:
+            The `freight_reference` database.
+        """
+        return self.client[REFERENCE_DB]
+
 
 def get_context(request: Request) -> AppContext:
     """Return the application context for a request.
@@ -66,3 +75,19 @@ def get_context(request: Request) -> AppContext:
     if not isinstance(context, AppContext):
         raise RuntimeError("application context is missing; build the app with create_app")
     return context
+
+
+def firm_db(request: Request, principal: Principal) -> MongoDb:
+    """Return the caller's firm database (the tenant comes only from the principal).
+
+    Args:
+        request: Incoming request.
+        principal: Firm principal.
+
+    Returns:
+        The `firm_<tenant>` database.
+
+    Raises:
+        TenantError: If the principal has no firm.
+    """
+    return get_context(request).tenant_db.for_principal(principal)

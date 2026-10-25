@@ -2,42 +2,22 @@
 
 from __future__ import annotations
 
-import re
 from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from manceps_core.emails import EMAIL_MAX, normalize_email
 from manceps_core.phones import normalize_phone
 from manceps_core.tenancy import TENANT_PATTERN, Role
 
 from .scoped import LINK_TOKEN_PATTERN
 
 FIRM_NAME_MIN, FIRM_NAME_MAX = 2, 60
-EMAIL_MAX = 254
-EMAIL_PATTERN = re.compile(r"^[^@\s]{1,64}@[^@\s]+\.[^@\s]+$")
 SECRET_TOKEN_PATTERN = r"^(mci_)?[A-Za-z0-9_-]{43}$"  # noqa: S105 - a regex, not a secret
 OTP_CODE_PATTERN = r"^\d{4,10}$"
 
 LoginState = Literal["active", "provisioning", "no_firm"]
-
-
-def normalize_email(value: str) -> str:
-    """Trim, lowercase and sanity-check an email address.
-
-    Args:
-        value: Address as typed.
-
-    Returns:
-        The normalized address.
-
-    Raises:
-        ValueError: If it does not look like an address.
-    """
-    value = value.strip().lower()
-    if len(value) > EMAIL_MAX or not EMAIL_PATTERN.fullmatch(value):
-        raise ValueError("enter a valid email address")
-    return value
 
 
 def normalize_firm_name(value: str) -> str:

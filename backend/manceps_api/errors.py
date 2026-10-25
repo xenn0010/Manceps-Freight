@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from manceps_core.repo.errors import Conflict, Invalid, NotFound, RepoError
 from manceps_core.tenancy import TenantError
 
 log = structlog.get_logger(__name__)
@@ -35,6 +36,8 @@ VALIDATION_MESSAGE = "request validation failed"
 TENANT_MESSAGE = "no active firm for this request"
 VALIDATION_ERROR_KEYS = ("loc", "msg", "type")
 REPLAY_HEADER = "Idempotency-Replayed"
+REPO_STATUS: tuple[tuple[type[RepoError], int], ...] = ((NotFound, 404), (Conflict, 409), (Invalid, 422))
+REPO_DEFAULT_STATUS = 400
 
 ExcT = TypeVar("ExcT", bound=Exception)
 
@@ -188,6 +191,21 @@ async def _validation_error(_request: Request, exc: Exception) -> JSONResponse:
     return envelope(422, "validation_error", VALIDATION_MESSAGE, {"errors": errors})
 
 
+async def _repo_error(_request: Request, exc: Exception) -> JSONResponse:
+    """Render a repository refusal: not found 404, conflict 409, invalid 422.
+
+    Args:
+        _request: Request.
+        exc: The RepoError.
+
+    Returns:
+        Envelope response.
+    """
+    error = _narrow(exc, RepoError)
+    status = next((code for kind, code in REPO_STATUS if isinstance(error, kind)), REPO_DEFAULT_STATUS)
+    return envelope(status, error.code, error.message, error.details)
+
+
 async def _tenant_error(_request: Request, exc: Exception) -> JSONResponse:
     """Render a tenancy refusal as 403 without details.
 
@@ -240,5 +258,6 @@ def install_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(StarletteHTTPException, _http_error)
     app.add_exception_handler(RequestValidationError, _validation_error)
     app.add_exception_handler(TenantError, _tenant_error)
+    app.add_exception_handler(RepoError, _repo_error)
     app.add_exception_handler(ReplayResponse, _replay)
     app.add_exception_handler(Exception, _unhandled)

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ..settings import Settings
+from .broker_lookup import BrokerLookup, broker_lookup_from_settings
 from .mailer import Mailer, mailer_from_settings
 from .twilio_verify import Verifier, verifier_from_settings
 
@@ -15,6 +16,7 @@ class Integrations:
 
     verifier: Verifier | None = None
     mailer: Mailer | None = None
+    broker_lookup: BrokerLookup | None = None
 
     @classmethod
     def from_settings(cls, settings: Settings) -> Integrations:
@@ -26,4 +28,5 @@ class Integrations:
         Returns:
             The integrations.
         """
-        return cls(verifier=verifier_from_settings(settings), mailer=mailer_from_settings(settings))
+        return cls(verifier=verifier_from_settings(settings), mailer=mailer_from_settings(settings),
+                   broker_lookup=broker_lookup_from_settings(settings))

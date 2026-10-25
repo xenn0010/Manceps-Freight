@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import base64
 import binascii
+from collections.abc import Callable
 from typing import Annotated, Generic, TypeVar
 
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import Query
 from pydantic import BaseModel
+
+from manceps_core.mongo import Doc
 
 from .errors import ApiError
 
@@ -61,3 +64,19 @@ def decode_cursor(cursor: str | None) -> ObjectId | None:
         return ObjectId(raw)
     except (binascii.Error, ValueError, InvalidId, TypeError) as exc:
         raise ApiError(400, "invalid_cursor", "the cursor is not valid") from exc
+
+
+def page_of(docs: list[Doc], limit: int, render: Callable[[Doc], ItemT]) -> Page[ItemT]:
+    """Build a page from up to limit + 1 documents sorted by `_id`.
+
+    Args:
+        docs: Documents fetched with limit + 1.
+        limit: Page size.
+        render: Turns a document into an item.
+
+    Returns:
+        The page; next_cursor is set when more documents follow.
+    """
+    page = docs[:limit]
+    next_cursor = encode_cursor(page[-1]["_id"]) if len(docs) > limit else None
+    return Page[ItemT](items=[render(doc) for doc in page], next_cursor=next_cursor)

@@ -31,6 +31,7 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = BACKEND_DIR.parent
 PLUGIN_DIR = REPO_ROOT / "hermes-freight"
 SIGNUP_API_DIR = REPO_ROOT / "signup-api"
+PLUGIN_PACKAGE = "hf_probe_plugin"
 START = datetime(2026, 10, 25, 12, 0, tzinfo=UTC)
 TENANT_A = "apex-freight"
 TENANT_B = "bolt-logistics"
@@ -161,6 +162,22 @@ def load_module(name: str, path: Path) -> ModuleType:
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def plugin_module(name: str) -> ModuleType:
+    """Import one hermes-freight module through a synthetic package so the plugin's __init__ (Hermes deps) never runs.
+
+    Args:
+        name: Module name inside the plugin, e.g. "store" or "carriers".
+
+    Returns:
+        The plugin module.
+    """
+    if PLUGIN_PACKAGE not in sys.modules:
+        package = ModuleType(PLUGIN_PACKAGE)
+        package.__path__ = [str(PLUGIN_DIR)]
+        sys.modules[PLUGIN_PACKAGE] = package
+    return importlib.import_module(f"{PLUGIN_PACKAGE}.{name}")
 
 
 def make_principal(

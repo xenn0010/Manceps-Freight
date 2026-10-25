@@ -22,7 +22,7 @@ from manceps_core.tenancy import Principal, Role
 
 from ..context import AppContext, get_context
 from ..errors import ApiError
-from ..idempotency import idempotency_dependency
+from ..idempotency import IdempotencyGuard, idempotency_dependency
 from .scoped import SCOPED_LINKS, link_is_live
 from .sessions import find_session
 from .tokens import AUD_FIRM, AUD_PORTAL, Audience, TokenClaims, TokenError, TokenService
@@ -235,3 +235,4 @@ FirmViewer = Annotated[Principal, Depends(require_role("viewer"))]
 FirmDispatcher = Annotated[Principal, Depends(require_role("dispatcher"))]
 FirmOwner = Annotated[Principal, Depends(require_role("owner"))]
 PortalPrincipal = Annotated[Principal, Depends(portal_principal)]
+FirmIdempotency = Annotated[IdempotencyGuard, Depends(firm_idempotency)]

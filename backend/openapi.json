@@ -133,6 +133,1861 @@
         "title": "AuditItem",
         "type": "object"
       },
+      "Broker": {
+        "description": "A broker the firm works with, with notes (newest first, at most 20) and the last check.",
+        "properties": {
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "credit_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Notes"
+          },
+          "dot_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dot Number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LastCheck"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mc_number": {
+            "title": "Mc Number",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/BrokerNote"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "payment_terms": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Terms"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "id",
+          "mc_number",
+          "dot_number",
+          "company",
+          "tags",
+          "payment_terms",
+          "credit_notes",
+          "notes",
+          "last_check",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Broker",
+        "type": "object"
+      },
+      "BrokerCheck": {
+        "description": "A stored vetting result; failures are `unknown`, never `pass`.",
+        "properties": {
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "checks": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "dot_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dot Number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "mc_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mc Number"
+          },
+          "verdict": {
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "mc_number",
+          "dot_number",
+          "verdict",
+          "checks",
+          "checked_at"
+        ],
+        "title": "BrokerCheck",
+        "type": "object"
+      },
+      "BrokerCreate": {
+        "additionalProperties": false,
+        "description": "A broker to remember; the company defaults to the FMCSA legal name when known.",
+        "properties": {
+          "company": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "credit_notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Notes"
+          },
+          "dot_number": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dot Number"
+          },
+          "mc_number": {
+            "maxLength": 32,
+            "title": "Mc Number",
+            "type": "string"
+          },
+          "payment_terms": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Terms"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          }
+        },
+        "required": [
+          "mc_number"
+        ],
+        "title": "BrokerCreate",
+        "type": "object"
+      },
+      "BrokerFields": {
+        "additionalProperties": false,
+        "description": "Writable broker fields.",
+        "properties": {
+          "company": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "credit_notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credit Notes"
+          },
+          "dot_number": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dot Number"
+          },
+          "payment_terms": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payment Terms"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          }
+        },
+        "title": "BrokerFields",
+        "type": "object"
+      },
+      "BrokerNote": {
+        "description": "A note about a broker.",
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "by": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "By"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "text",
+          "by",
+          "session_id"
+        ],
+        "title": "BrokerNote",
+        "type": "object"
+      },
+      "Carrier": {
+        "description": "A carrier on the firm's roster.",
+        "properties": {
+          "agreement_signed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agreement Signed"
+          },
+          "avoid": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Avoid",
+            "type": "array"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "consent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConsentState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "dispatch_fee_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dispatch Fee Pct"
+          },
+          "dot_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dot Number"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "equipment": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Equipment",
+            "type": "array"
+          },
+          "home_base": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home Base"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "insurance_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurance Expires At"
+          },
+          "mc_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mc Number"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "preferred_lanes": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Preferred Lanes",
+            "type": "array"
+          },
+          "rate_floor_per_mile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Floor Per Mile"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "id",
+          "phone",
+          "name",
+          "company",
+          "mc_number",
+          "dot_number",
+          "email",
+          "equipment",
+          "home_base",
+          "preferred_lanes",
+          "avoid",
+          "notes",
+          "status",
+          "tags",
+          "insurance_expires_at",
+          "dispatch_fee_pct",
+          "rate_floor_per_mile",
+          "agreement_signed",
+          "consent",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Carrier",
+        "type": "object"
+      },
+      "CarrierCreate": {
+        "additionalProperties": false,
+        "description": "A new carrier; the phone (any US format) is its unique key.",
+        "properties": {
+          "agreement_signed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Owner only.",
+            "title": "Agreement Signed"
+          },
+          "avoid": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avoid"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "dispatch_fee_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Percent of gross; owner only, max 25.",
+            "title": "Dispatch Fee Pct"
+          },
+          "dot_number": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dot Number"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "equipment": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equipment"
+          },
+          "home_base": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home Base"
+          },
+          "insurance_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurance Expires At"
+          },
+          "mc_number": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mc Number"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "phone": {
+            "maxLength": 32,
+            "title": "Phone",
+            "type": "string"
+          },
+          "preferred_lanes": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Lane"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Lanes"
+          },
+          "rate_floor_per_mile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Lowest all-in $/mile; owner only.",
+            "title": "Rate Floor Per Mile"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "onboarding",
+                  "active",
+                  "paused",
+                  "offboarded"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          }
+        },
+        "required": [
+          "phone"
+        ],
+        "title": "CarrierCreate",
+        "type": "object"
+      },
+      "CarrierPatch": {
+        "additionalProperties": false,
+        "description": "Carrier changes; null removes an optional field. Consent is refused here (use the consent routes).",
+        "properties": {
+          "agreement_signed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Owner only.",
+            "title": "Agreement Signed"
+          },
+          "avoid": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avoid"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "consent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConsentInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dispatch_fee_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Percent of gross; owner only, max 25.",
+            "title": "Dispatch Fee Pct"
+          },
+          "dot_number": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dot Number"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "equipment": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equipment"
+          },
+          "home_base": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home Base"
+          },
+          "insurance_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Insurance Expires At"
+          },
+          "mc_number": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mc Number"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "preferred_lanes": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/Lane"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Lanes"
+          },
+          "rate_floor_per_mile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Lowest all-in $/mile; owner only.",
+            "title": "Rate Floor Per Mile"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "onboarding",
+                  "active",
+                  "paused",
+                  "offboarded"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          }
+        },
+        "title": "CarrierPatch",
+        "type": "object"
+      },
+      "CheckRequest": {
+        "additionalProperties": false,
+        "description": "Optional extra inputs for a vetting check.",
+        "properties": {
+          "dot_number": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dot Number"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          }
+        },
+        "title": "CheckRequest",
+        "type": "object"
+      },
+      "ConsentGrant": {
+        "additionalProperties": false,
+        "description": "Record that the carrier agreed to be contacted on a channel, and how (required).",
+        "properties": {
+          "channel": {
+            "enum": [
+              "sms",
+              "voice",
+              "whatsapp"
+            ],
+            "title": "Channel",
+            "type": "string"
+          },
+          "evidence_ref": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Reference to stored evidence, e.g. a document id.",
+            "title": "Evidence Ref"
+          },
+          "method": {
+            "description": "How consent was given, with date, e.g. 'signed dispatch agreement 2026-10-24'.",
+            "maxLength": 300,
+            "title": "Method",
+            "type": "string"
+          }
+        },
+        "required": [
+          "channel",
+          "method"
+        ],
+        "title": "ConsentGrant",
+        "type": "object"
+      },
+      "ConsentInput": {
+        "additionalProperties": false,
+        "description": "Consent as the plugin shapes it; accepted only to explain that consent goes through the ledger.",
+        "properties": {
+          "method": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Method"
+          },
+          "sms": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sms"
+          },
+          "voice": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voice"
+          },
+          "whatsapp": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whatsapp"
+          }
+        },
+        "title": "ConsentInput",
+        "type": "object"
+      },
+      "ConsentState": {
+        "description": "Consent cache (the ledger in consent_events is the truth).",
+        "properties": {
+          "method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Method"
+          },
+          "recorded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded At"
+          },
+          "sms": {
+            "title": "Sms",
+            "type": "boolean"
+          },
+          "voice": {
+            "title": "Voice",
+            "type": "boolean"
+          },
+          "whatsapp": {
+            "title": "Whatsapp",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sms",
+          "voice",
+          "whatsapp",
+          "method",
+          "recorded_at"
+        ],
+        "title": "ConsentState",
+        "type": "object"
+      },
+      "Contact": {
+        "description": "A contact.",
+        "properties": {
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "consent": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "emails": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Emails",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "phones": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Phones",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "company",
+          "title",
+          "phones",
+          "emails",
+          "tags",
+          "source",
+          "consent",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Contact",
+        "type": "object"
+      },
+      "ContactCreate": {
+        "additionalProperties": false,
+        "description": "A new contact.",
+        "properties": {
+          "company": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "emails": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 254,
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emails"
+          },
+          "kind": {
+            "enum": [
+              "broker_contact",
+              "shipper",
+              "receiver",
+              "facility",
+              "other"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          },
+          "phones": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phones"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "kind",
+          "name"
+        ],
+        "title": "ContactCreate",
+        "type": "object"
+      },
+      "ContactPatch": {
+        "additionalProperties": false,
+        "description": "Contact changes; null removes an optional field.",
+        "properties": {
+          "company": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "emails": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 254,
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emails"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "broker_contact",
+                  "shipper",
+                  "receiver",
+                  "facility",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phones": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phones"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "ContactPatch",
+        "type": "object"
+      },
+      "Driver": {
+        "description": "A driver.",
+        "properties": {
+          "carrier_id": {
+            "title": "Carrier Id",
+            "type": "string"
+          },
+          "consent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConsentState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "license_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License Expires At"
+          },
+          "license_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License State"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "carrier_id",
+          "name",
+          "phone",
+          "email",
+          "status",
+          "license_state",
+          "license_expires_at",
+          "consent",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Driver",
+        "type": "object"
+      },
+      "DriverCreate": {
+        "additionalProperties": false,
+        "description": "A new driver of one of the firm's carriers.",
+        "properties": {
+          "carrier_id": {
+            "description": "Id of a carrier of this firm.",
+            "maxLength": 64,
+            "title": "Carrier Id",
+            "type": "string"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "license_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License Expires At"
+          },
+          "license_state": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License State"
+          },
+          "name": {
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "inactive"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": [
+          "carrier_id",
+          "name"
+        ],
+        "title": "DriverCreate",
+        "type": "object"
+      },
+      "DriverPatch": {
+        "additionalProperties": false,
+        "description": "Driver changes; null removes an optional field.",
+        "properties": {
+          "carrier_id": {
+            "anyOf": [
+              {
+                "description": "Id of a carrier of this firm.",
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carrier Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "license_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License Expires At"
+          },
+          "license_state": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License State"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "inactive"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "DriverPatch",
+        "type": "object"
+      },
       "ErrorBody": {
         "description": "The inner error object.",
         "properties": {
@@ -171,6 +2026,360 @@
           "error"
         ],
         "title": "ErrorEnvelope",
+        "type": "object"
+      },
+      "Facility": {
+        "description": "A shipper or receiver location.",
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "contact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Contact Ids",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "detention_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detention Notes"
+          },
+          "hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Location"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "zip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zip"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "address",
+          "city",
+          "state",
+          "zip",
+          "location",
+          "hours",
+          "detention_notes",
+          "contact_ids",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Facility",
+        "type": "object"
+      },
+      "FacilityCreate": {
+        "additionalProperties": false,
+        "description": "A new facility.",
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "contact_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Ids"
+          },
+          "detention_notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detention Notes"
+          },
+          "hours": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Location"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "maxLength": 200,
+            "title": "Name",
+            "type": "string"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "zip": {
+            "anyOf": [
+              {
+                "maxLength": 10,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zip"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "FacilityCreate",
+        "type": "object"
+      },
+      "FacilityPatch": {
+        "additionalProperties": false,
+        "description": "Facility changes; null removes an optional field.",
+        "properties": {
+          "address": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "contact_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Ids"
+          },
+          "detention_notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detention Notes"
+          },
+          "hours": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Location"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "zip": {
+            "anyOf": [
+              {
+                "maxLength": 10,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zip"
+          }
+        },
+        "title": "FacilityPatch",
         "type": "object"
       },
       "Firm": {
@@ -498,6 +2707,148 @@
         "title": "InvitationCreated",
         "type": "object"
       },
+      "Lane": {
+        "additionalProperties": false,
+        "description": "A lane the carrier likes to run.",
+        "properties": {
+          "destination": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Destination"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin"
+          }
+        },
+        "title": "Lane",
+        "type": "object"
+      },
+      "LastCheck": {
+        "description": "The latest vetting verdict.",
+        "properties": {
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "verdict": {
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "checked_at"
+        ],
+        "title": "LastCheck",
+        "type": "object"
+      },
+      "LinkCreate": {
+        "additionalProperties": false,
+        "description": "Options for a new carrier link.",
+        "properties": {
+          "ttl_days": {
+            "default": 30,
+            "maximum": 90.0,
+            "minimum": 1.0,
+            "title": "Ttl Days",
+            "type": "integer"
+          }
+        },
+        "title": "LinkCreate",
+        "type": "object"
+      },
+      "LinkCreated": {
+        "description": "A new carrier link; `token` is shown once (null on an idempotent replay, where it is not stored).",
+        "properties": {
+          "carrier_id": {
+            "title": "Carrier Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "carrier_id",
+          "token",
+          "url",
+          "created_at",
+          "expires_at"
+        ],
+        "title": "LinkCreated",
+        "type": "object"
+      },
+      "Location": {
+        "additionalProperties": false,
+        "description": "A point.",
+        "properties": {
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "title": "Lng",
+            "type": "number"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ],
+        "title": "Location",
+        "type": "object"
+      },
       "MagicLinkStartRequest": {
         "additionalProperties": false,
         "description": "Email a sign-in link.",
@@ -790,6 +3141,73 @@
         "title": "MemberPatch",
         "type": "object"
       },
+      "Note": {
+        "description": "A note.",
+        "properties": {
+          "author": {
+            "additionalProperties": true,
+            "title": "Author",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "pinned": {
+            "title": "Pinned",
+            "type": "boolean"
+          },
+          "ref": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Ref",
+            "type": "object"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ref",
+          "text",
+          "pinned",
+          "author",
+          "created_at"
+        ],
+        "title": "Note",
+        "type": "object"
+      },
+      "NoteRef": {
+        "additionalProperties": false,
+        "description": "The record a note is about (broker notes use POST /v1/brokers/{mc}/notes).",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "title": "Id",
+            "type": "string"
+          },
+          "type": {
+            "description": "carrier, driver, truck, contact, facility or load.",
+            "maxLength": 16,
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id"
+        ],
+        "title": "NoteRef",
+        "type": "object"
+      },
       "OtpStartRequest": {
         "additionalProperties": false,
         "description": "Send a one-time code.",
@@ -880,6 +3298,174 @@
         "title": "Page[AuditItem]",
         "type": "object"
       },
+      "Page_BrokerCheck_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BrokerCheck"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[BrokerCheck]",
+        "type": "object"
+      },
+      "Page_Broker_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Broker"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[Broker]",
+        "type": "object"
+      },
+      "Page_Carrier_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Carrier"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[Carrier]",
+        "type": "object"
+      },
+      "Page_Contact_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Contact"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[Contact]",
+        "type": "object"
+      },
+      "Page_Driver_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Driver"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[Driver]",
+        "type": "object"
+      },
+      "Page_Facility_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Facility"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[Facility]",
+        "type": "object"
+      },
       "Page_Invitation_": {
         "properties": {
           "items": {
@@ -936,6 +3522,34 @@
         "title": "Page[Member]",
         "type": "object"
       },
+      "Page_Note_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[Note]",
+        "type": "object"
+      },
       "Page_SessionItem_": {
         "properties": {
           "items": {
@@ -962,6 +3576,34 @@
           "next_cursor"
         ],
         "title": "Page[SessionItem]",
+        "type": "object"
+      },
+      "Page_Truck_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Truck"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Page[Truck]",
         "type": "object"
       },
       "PortalMe": {
@@ -1056,6 +3698,115 @@
           "message"
         ],
         "title": "Provisioning",
+        "type": "object"
+      },
+      "ReferenceBroker": {
+        "description": "A public FMCSA broker record.",
+        "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "dba_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dba Name"
+          },
+          "dot_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dot Number"
+          },
+          "legal_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legal Name"
+          },
+          "mc_numbers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mc Numbers",
+            "type": "array"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          }
+        },
+        "required": [
+          "dot_number",
+          "mc_numbers",
+          "legal_name",
+          "dba_name",
+          "city",
+          "state"
+        ],
+        "title": "ReferenceBroker",
+        "type": "object"
+      },
+      "ReferenceSearch": {
+        "description": "Reference search results; a listed phone number is not consent to contact.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceBroker"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "count",
+          "source",
+          "note"
+        ],
+        "title": "ReferenceSearch",
         "type": "object"
       },
       "RefreshRequest": {
@@ -1240,6 +3991,50 @@
         "title": "SwitchFirmRequest",
         "type": "object"
       },
+      "TagCount": {
+        "description": "How often a tag is used, overall and per record kind.",
+        "properties": {
+          "by_entity": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Entity",
+            "type": "object"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tag",
+          "count",
+          "by_entity"
+        ],
+        "title": "TagCount",
+        "type": "object"
+      },
+      "TagList": {
+        "description": "The firm's tag vocabulary, most used first.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TagCount"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "TagList",
+        "type": "object"
+      },
       "TokenResponse": {
         "description": "Tokens after sign-in, refresh or switching firm.",
         "properties": {
@@ -1334,6 +4129,317 @@
           "state"
         ],
         "title": "TokenResponse",
+        "type": "object"
+      },
+      "Truck": {
+        "description": "A truck.",
+        "properties": {
+          "carrier_id": {
+            "title": "Carrier Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "equipment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equipment"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "max_weight_lbs": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Weight Lbs"
+          },
+          "plate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plate"
+          },
+          "plate_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plate State"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "vin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vin"
+          }
+        },
+        "required": [
+          "id",
+          "carrier_id",
+          "unit",
+          "equipment",
+          "vin",
+          "plate",
+          "plate_state",
+          "max_weight_lbs",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "Truck",
+        "type": "object"
+      },
+      "TruckCreate": {
+        "additionalProperties": false,
+        "description": "A new truck of one of the firm's carriers.",
+        "properties": {
+          "carrier_id": {
+            "description": "Id of a carrier of this firm.",
+            "maxLength": 64,
+            "title": "Carrier Id",
+            "type": "string"
+          },
+          "equipment": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equipment"
+          },
+          "max_weight_lbs": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Weight Lbs"
+          },
+          "plate": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plate"
+          },
+          "plate_state": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plate State"
+          },
+          "unit": {
+            "maxLength": 200,
+            "title": "Unit",
+            "type": "string"
+          },
+          "vin": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vin"
+          }
+        },
+        "required": [
+          "carrier_id",
+          "unit"
+        ],
+        "title": "TruckCreate",
+        "type": "object"
+      },
+      "TruckPatch": {
+        "additionalProperties": false,
+        "description": "Truck changes; null removes an optional field.",
+        "properties": {
+          "carrier_id": {
+            "anyOf": [
+              {
+                "description": "Id of a carrier of this firm.",
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carrier Id"
+          },
+          "equipment": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equipment"
+          },
+          "max_weight_lbs": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Weight Lbs"
+          },
+          "plate": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plate"
+          },
+          "plate_state": {
+            "anyOf": [
+              {
+                "maxLength": 16,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plate State"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "vin": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vin"
+          }
+        },
+        "title": "TruckPatch",
+        "type": "object"
+      },
+      "manceps_api__routes__brokers__NoteCreate": {
+        "additionalProperties": false,
+        "description": "A new broker note.",
+        "properties": {
+          "text": {
+            "maxLength": 1000,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "NoteCreate",
+        "type": "object"
+      },
+      "manceps_api__routes__notes__NoteCreate": {
+        "additionalProperties": false,
+        "description": "A new note.",
+        "properties": {
+          "pinned": {
+            "default": false,
+            "title": "Pinned",
+            "type": "boolean"
+          },
+          "ref": {
+            "$ref": "#/components/schemas/NoteRef"
+          },
+          "text": {
+            "maxLength": 1000,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "text"
+        ],
+        "title": "NoteCreate",
         "type": "object"
       }
     },
@@ -2004,6 +5110,2366 @@
         "summary": "Switch this session to a firm",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/v1/brokers": {
+      "get": {
+        "description": "List the firm's brokers, oldest first (notes and last check included).\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    q: Company contains, or exact MC digits.\n    tag: Only brokers with this tag.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.",
+        "operationId": "brokers_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Broker_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List brokers",
+        "tags": [
+          "brokers"
+        ]
+      },
+      "post": {
+        "description": "Add a broker by MC (audited); the company name is pulled from the FMCSA reference when not given.\n\nArgs:\n    body: Broker fields.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n    guard: Idempotency guard.\n\nReturns:\n    The broker.\n\nRaises:\n    RepoError: 409 duplicate_mc, 422.",
+        "operationId": "brokers_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrokerCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Broker"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Add a broker",
+        "tags": [
+          "brokers"
+        ]
+      }
+    },
+    "/v1/brokers/{mc}": {
+      "get": {
+        "description": "Return what the firm knows about a broker.\n\nArgs:\n    mc: MC number.\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The broker.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "brokers_get",
+        "parameters": [
+          {
+            "description": "MC number, digits or MC-123456.",
+            "in": "path",
+            "name": "mc",
+            "required": true,
+            "schema": {
+              "description": "MC number, digits or MC-123456.",
+              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "title": "Mc",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Broker"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Get a broker",
+        "tags": [
+          "brokers"
+        ]
+      },
+      "patch": {
+        "description": "Change a broker's company, tags, payment terms or credit notes (audited).\n\nArgs:\n    mc: MC number.\n    body: Changes (null removes an optional field).\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The broker.\n\nRaises:\n    RepoError: 404, 422.",
+        "operationId": "brokers_update",
+        "parameters": [
+          {
+            "description": "MC number, digits or MC-123456.",
+            "in": "path",
+            "name": "mc",
+            "required": true,
+            "schema": {
+              "description": "MC number, digits or MC-123456.",
+              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "title": "Mc",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BrokerFields"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Broker"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Update a broker",
+        "tags": [
+          "brokers"
+        ]
+      }
+    },
+    "/v1/brokers/{mc}/check": {
+      "post": {
+        "description": "Run the broker vetting checks (FMCSA status and authority, bond, email domain) and store the result.\n\nLookup failures are `unknown` and the verdict is then `review` or `do_not_book`, never `looks_ok`.\n\nArgs:\n    mc: MC number of a broker of this firm.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n    body: Optional contact email and DOT number.\n\nReturns:\n    The stored check.\n\nRaises:\n    RepoError: 404 unknown broker.\n    ApiError: 503 integration_not_configured without FMCSA_WEBKEY; 429 over the firm's hourly limit.",
+        "operationId": "broker_checks_create",
+        "parameters": [
+          {
+            "description": "MC number, digits or MC-123456.",
+            "in": "path",
+            "name": "mc",
+            "required": true,
+            "schema": {
+              "description": "MC number, digits or MC-123456.",
+              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "title": "Mc",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/CheckRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrokerCheck"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Vet a broker",
+        "tags": [
+          "brokers"
+        ]
+      }
+    },
+    "/v1/brokers/{mc}/checks": {
+      "get": {
+        "description": "List a broker's vetting results, newest first.\n\nArgs:\n    mc: MC number.\n    request: Incoming request.\n    principal: Firm member.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    RepoError: 404 unknown broker.\n    ApiError: 400 invalid_cursor.",
+        "operationId": "broker_checks_list",
+        "parameters": [
+          {
+            "description": "MC number, digits or MC-123456.",
+            "in": "path",
+            "name": "mc",
+            "required": true,
+            "schema": {
+              "description": "MC number, digits or MC-123456.",
+              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "title": "Mc",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_BrokerCheck_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Broker check history",
+        "tags": [
+          "brokers"
+        ]
+      }
+    },
+    "/v1/brokers/{mc}/notes": {
+      "post": {
+        "description": "Append a note to a broker (audited).\n\nArgs:\n    mc: MC number.\n    body: Note text.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The note.\n\nRaises:\n    RepoError: 404, 422 on a blank note.",
+        "operationId": "broker_notes_create",
+        "parameters": [
+          {
+            "description": "MC number, digits or MC-123456.",
+            "in": "path",
+            "name": "mc",
+            "required": true,
+            "schema": {
+              "description": "MC number, digits or MC-123456.",
+              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "title": "Mc",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/manceps_api__routes__brokers__NoteCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrokerNote"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Add a broker note",
+        "tags": [
+          "brokers"
+        ]
+      }
+    },
+    "/v1/carriers": {
+      "get": {
+        "description": "List the firm's live carriers, oldest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    status: Only this status.\n    equipment: Only carriers with this equipment.\n    tag: Only carriers with this tag.\n    q: Name or company contains.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.",
+        "operationId": "carriers_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "onboarding",
+                    "active",
+                    "paused",
+                    "offboarded"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "equipment",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Equipment"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Carrier_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List carriers",
+        "tags": [
+          "carriers"
+        ]
+      },
+      "post": {
+        "description": "Add a carrier (audited). A dispatcher sending fee, floor or agreement gets 409 approval_required.\n\nArgs:\n    body: Carrier fields.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n    guard: Idempotency guard (Idempotency-Key header optional).\n\nReturns:\n    The carrier.\n\nRaises:\n    RepoError: 409 duplicate_phone or approval_required, 422 on invalid values.",
+        "operationId": "carriers_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CarrierCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrier"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Add a carrier",
+        "tags": [
+          "carriers"
+        ]
+      }
+    },
+    "/v1/carriers/{carrier_id}": {
+      "delete": {
+        "description": "Offboard (soft-delete) a carrier; its phone number can be added again later.\n\nArgs:\n    carrier_id: Carrier id.\n    request: Incoming request.\n    principal: Firm owner.\n\nReturns:\n    204.\n\nRaises:\n    RepoError: 404, or 409 carrier_has_open_loads.",
+        "operationId": "carriers_delete",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "carrier_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Carrier Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Offboard a carrier",
+        "tags": [
+          "carriers"
+        ]
+      },
+      "get": {
+        "description": "Return one live carrier with its consent summary.\n\nArgs:\n    carrier_id: Carrier id.\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The carrier.\n\nRaises:\n    RepoError: 404 when it is not a live carrier of this firm.",
+        "operationId": "carriers_get",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "carrier_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Carrier Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrier"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Get a carrier",
+        "tags": [
+          "carriers"
+        ]
+      },
+      "patch": {
+        "description": "Change a carrier (audited with before and after hashes).\n\nFee, floor, agreement and consent are sensitive: a dispatcher gets 409 approval_required\n(details.approval_kind = carrier_terms_change); the owner writes fee, floor and agreement directly; consent\nalways goes through POST /v1/carriers/{id}/consent (422 use_consent_endpoint).\n\nArgs:\n    carrier_id: Carrier id.\n    body: Changes.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The updated carrier.\n\nRaises:\n    RepoError: 404, 409 approval_required or duplicate_phone, 422.",
+        "operationId": "carriers_update",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "carrier_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Carrier Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CarrierPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrier"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Update a carrier",
+        "tags": [
+          "carriers"
+        ]
+      }
+    },
+    "/v1/carriers/{carrier_id}/consent": {
+      "post": {
+        "description": "Append a grant to the consent ledger, then refresh the carrier's consent cache from the ledger.\n\nArgs:\n    carrier_id: Carrier id.\n    body: Channel, method and optional evidence.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The carrier with its refreshed consent.\n\nRaises:\n    RepoError: 404 unknown carrier, 422 blank method.",
+        "operationId": "carrier_consent_grant",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "carrier_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Carrier Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentGrant"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrier"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Record consent",
+        "tags": [
+          "carriers"
+        ]
+      }
+    },
+    "/v1/carriers/{carrier_id}/consent/{channel}": {
+      "delete": {
+        "description": "Append a revoke to the consent ledger, then refresh the carrier's consent cache.\n\nArgs:\n    carrier_id: Carrier id.\n    channel: Channel to revoke.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The carrier with its refreshed consent.\n\nRaises:\n    RepoError: 404 unknown carrier.",
+        "operationId": "carrier_consent_revoke",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "carrier_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Carrier Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "channel",
+            "required": true,
+            "schema": {
+              "enum": [
+                "sms",
+                "voice",
+                "whatsapp"
+              ],
+              "title": "Channel",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrier"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Revoke consent",
+        "tags": [
+          "carriers"
+        ]
+      }
+    },
+    "/v1/carriers/{carrier_id}/links": {
+      "post": {
+        "description": "Create a scoped link for the carrier portal; the token is returned once and stored only as a hash.\n\nArgs:\n    carrier_id: Carrier id.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n    guard: Idempotency guard (Idempotency-Key header optional).\n    body: Optional lifetime (default 30 days, at most 90).\n\nReturns:\n    The link with its token and portal URL.\n\nRaises:\n    RepoError: 404 unknown carrier.",
+        "operationId": "carrier_links_create",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "carrier_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Carrier Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/LinkCreate"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Create a carrier portal link",
+        "tags": [
+          "carriers"
+        ]
+      }
+    },
+    "/v1/carriers/{carrier_id}/links/{link_id}": {
+      "delete": {
+        "description": "Revoke a carrier's link; portal tokens issued from it stop working on their next request.\n\nArgs:\n    carrier_id: Carrier id.\n    link_id: Link id.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    204.\n\nRaises:\n    RepoError: 404 unknown carrier.\n    ApiError: 404 when the link is not a live link of this carrier.",
+        "operationId": "carrier_links_delete",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "carrier_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Carrier Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Link Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Revoke a carrier portal link",
+        "tags": [
+          "carriers"
+        ]
+      }
+    },
+    "/v1/contacts": {
+      "get": {
+        "description": "List live contacts, oldest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    kind: Only this kind.\n    tag: Only contacts with this tag.\n    phone: Only contacts with this phone (any US format).\n    q: Name or company contains.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.\n    RepoError: 422 on a malformed phone filter.",
+        "operationId": "contacts_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "broker_contact",
+                    "shipper",
+                    "receiver",
+                    "facility",
+                    "other"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "in": "query",
+            "name": "phone",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Phone"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Contact_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List contacts",
+        "tags": [
+          "contacts"
+        ]
+      },
+      "post": {
+        "description": "Add a contact (audited); phones are normalized to E.164 and emails lowercased.\n\nArgs:\n    body: Contact fields.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n    guard: Idempotency guard.\n\nReturns:\n    The contact.\n\nRaises:\n    RepoError: 422.",
+        "operationId": "contacts_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Add a contact",
+        "tags": [
+          "contacts"
+        ]
+      }
+    },
+    "/v1/contacts/{contact_id}": {
+      "delete": {
+        "description": "Soft-delete a contact.\n\nArgs:\n    contact_id: Contact id.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    204.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "contacts_delete",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "contact_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Contact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Delete a contact",
+        "tags": [
+          "contacts"
+        ]
+      },
+      "get": {
+        "description": "Return one live contact.\n\nArgs:\n    contact_id: Contact id.\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The contact.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "contacts_get",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "contact_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Contact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Get a contact",
+        "tags": [
+          "contacts"
+        ]
+      },
+      "patch": {
+        "description": "Change a contact (audited); null removes an optional field.\n\nArgs:\n    contact_id: Contact id.\n    body: Changes.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The contact.\n\nRaises:\n    RepoError: 404, 422.",
+        "operationId": "contacts_update",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "contact_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Contact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Update a contact",
+        "tags": [
+          "contacts"
+        ]
+      }
+    },
+    "/v1/drivers": {
+      "get": {
+        "description": "List live drivers, oldest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    carrier_id: Only drivers of this carrier.\n    status: Only this status.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.",
+        "operationId": "drivers_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "carrier_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Carrier Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Driver_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List drivers",
+        "tags": [
+          "fleet"
+        ]
+      },
+      "post": {
+        "description": "Add a driver to a carrier of this firm (audited).\n\nArgs:\n    body: Driver fields.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n    guard: Idempotency guard.\n\nReturns:\n    The driver.\n\nRaises:\n    RepoError: 409 duplicate_phone, 422 on invalid values or an unknown carrier.",
+        "operationId": "drivers_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DriverCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Driver"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Add a driver",
+        "tags": [
+          "fleet"
+        ]
+      }
+    },
+    "/v1/drivers/{driver_id}": {
+      "delete": {
+        "description": "Soft-delete a driver; the phone number can be used again.\n\nArgs:\n    driver_id: Driver id.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    204.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "drivers_delete",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "driver_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Driver Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Delete a driver",
+        "tags": [
+          "fleet"
+        ]
+      },
+      "get": {
+        "description": "Return one live driver.\n\nArgs:\n    driver_id: Driver id.\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The driver.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "drivers_get",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "driver_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Driver Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Driver"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Get a driver",
+        "tags": [
+          "fleet"
+        ]
+      },
+      "patch": {
+        "description": "Change a driver (audited).\n\nArgs:\n    driver_id: Driver id.\n    body: Changes.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The driver.\n\nRaises:\n    RepoError: 404, 409 duplicate_phone, 422.",
+        "operationId": "drivers_update",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "driver_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Driver Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DriverPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Driver"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Update a driver",
+        "tags": [
+          "fleet"
+        ]
+      }
+    },
+    "/v1/facilities": {
+      "get": {
+        "description": "List live facilities, oldest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    state: Only this two-letter state.\n    city: Only this city (any case).\n    q: Name or address contains.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.\n    RepoError: 422 on a malformed state.",
+        "operationId": "facilities_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 16,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "city",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Facility_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List facilities",
+        "tags": [
+          "contacts"
+        ]
+      },
+      "post": {
+        "description": "Add a facility (audited).\n\nArgs:\n    body: Facility fields.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n    guard: Idempotency guard.\n\nReturns:\n    The facility.\n\nRaises:\n    RepoError: 422 (including unknown contact ids).",
+        "operationId": "facilities_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FacilityCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Facility"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Add a facility",
+        "tags": [
+          "contacts"
+        ]
+      }
+    },
+    "/v1/facilities/{facility_id}": {
+      "delete": {
+        "description": "Soft-delete a facility.\n\nArgs:\n    facility_id: Facility id.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    204.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "facilities_delete",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "facility_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Facility Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Delete a facility",
+        "tags": [
+          "contacts"
+        ]
+      },
+      "get": {
+        "description": "Return one live facility.\n\nArgs:\n    facility_id: Facility id.\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The facility.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "facilities_get",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "facility_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Facility Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Facility"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Get a facility",
+        "tags": [
+          "contacts"
+        ]
+      },
+      "patch": {
+        "description": "Change a facility (audited); null removes an optional field.\n\nArgs:\n    facility_id: Facility id.\n    body: Changes.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The facility.\n\nRaises:\n    RepoError: 404, 422.",
+        "operationId": "facilities_update",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "facility_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Facility Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FacilityPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Facility"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Update a facility",
+        "tags": [
+          "contacts"
         ]
       }
     },
@@ -2752,6 +8218,163 @@
         ]
       }
     },
+    "/v1/notes": {
+      "get": {
+        "description": "List the notes of one record of this firm, oldest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    ref_type: Record kind.\n    ref_id: Record id.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    RepoError: 404 unknown record, 422 unsupported kind.\n    ApiError: 400 invalid_cursor.",
+        "operationId": "notes_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ref_type",
+            "required": true,
+            "schema": {
+              "maxLength": 16,
+              "title": "Ref Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ref_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "title": "Ref Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Note_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List notes of a record",
+        "tags": [
+          "notes"
+        ]
+      },
+      "post": {
+        "description": "Attach a note to a record of this firm (audited; the caller is the author).\n\nArgs:\n    body: Subject, text and pin flag.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The note.\n\nRaises:\n    RepoError: 404 unknown record, 422 blank text or unsupported kind.",
+        "operationId": "notes_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/manceps_api__routes__notes__NoteCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Note"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Add a note",
+        "tags": [
+          "notes"
+        ]
+      }
+    },
     "/v1/portal/me": {
       "get": {
         "description": "Return the carrier and firm a portal token belongs to.\n\nArgs:\n    request: Incoming request.\n    principal: Portal principal.\n\nReturns:\n    Carrier id and name and the firm name.\n\nRaises:\n    ApiError: 404 when the carrier no longer exists in the firm.",
@@ -2796,6 +8419,123 @@
         "summary": "Portal identity",
         "tags": [
           "portal"
+        ]
+      }
+    },
+    "/v1/reference/brokers": {
+      "get": {
+        "description": "Search public FMCSA broker records by MC, DOT, or name (at least 3 characters, optional state).\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    mc: MC number.\n    dot: DOT number.\n    q: Legal or DBA name contains.\n    state: Two-letter state (with q).\n\nReturns:\n    Up to 10 matches.\n\nRaises:\n    RepoError: 422 without a usable query.\n    ApiError: 503 reference_unavailable when the reference database cannot be read.",
+        "operationId": "reference_brokers_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mc",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mc"
+            }
+          },
+          {
+            "in": "query",
+            "name": "dot",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Dot"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceSearch"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Search FMCSA brokers",
+        "tags": [
+          "brokers"
         ]
       }
     },
@@ -2951,6 +8691,392 @@
         "summary": "Poll a signup",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/v1/tags": {
+      "get": {
+        "description": "Count tag use across live carriers, brokers and contacts.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    Tags with counts, most used first.",
+        "operationId": "tags_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Tag vocabulary",
+        "tags": [
+          "notes"
+        ]
+      }
+    },
+    "/v1/trucks": {
+      "get": {
+        "description": "List live trucks, oldest first.\n\nArgs:\n    request: Incoming request.\n    principal: Firm member.\n    carrier_id: Only trucks of this carrier.\n    limit: Page size.\n    cursor: Cursor from the previous page.\n\nReturns:\n    One page.\n\nRaises:\n    ApiError: 400 invalid_cursor.",
+        "operationId": "trucks_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "carrier_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Carrier Id"
+            }
+          },
+          {
+            "description": "Maximum items per page.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "description": "Maximum items per page.",
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "next_cursor from the last page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "next_cursor from the last page.",
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Truck_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "List trucks",
+        "tags": [
+          "fleet"
+        ]
+      },
+      "post": {
+        "description": "Add a truck to a carrier of this firm (audited).\n\nArgs:\n    body: Truck fields.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n    guard: Idempotency guard.\n\nReturns:\n    The truck.\n\nRaises:\n    RepoError: 409 duplicate_vin, 422 on invalid values or an unknown carrier.",
+        "operationId": "trucks_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TruckCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Truck"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Add a truck",
+        "tags": [
+          "fleet"
+        ]
+      }
+    },
+    "/v1/trucks/{truck_id}": {
+      "delete": {
+        "description": "Soft-delete a truck; its VIN can be used again.\n\nArgs:\n    truck_id: Truck id.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    204.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "trucks_delete",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "truck_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Truck Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Delete a truck",
+        "tags": [
+          "fleet"
+        ]
+      },
+      "get": {
+        "description": "Return one live truck.\n\nArgs:\n    truck_id: Truck id.\n    request: Incoming request.\n    principal: Firm member.\n\nReturns:\n    The truck.\n\nRaises:\n    RepoError: 404.",
+        "operationId": "trucks_get",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "truck_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Truck Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Truck"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Get a truck",
+        "tags": [
+          "fleet"
+        ]
+      },
+      "patch": {
+        "description": "Change a truck (audited).\n\nArgs:\n    truck_id: Truck id.\n    body: Changes.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The truck.\n\nRaises:\n    RepoError: 404, 409 duplicate_vin, 422.",
+        "operationId": "trucks_update",
+        "parameters": [
+          {
+            "description": "Record id.",
+            "in": "path",
+            "name": "truck_id",
+            "required": true,
+            "schema": {
+              "description": "Record id.",
+              "maxLength": 64,
+              "minLength": 1,
+              "title": "Truck Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TruckPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Truck"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "4XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Client error"
+          },
+          "5XX": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Server error"
+          }
+        },
+        "security": [
+          {
+            "FirmBearer": []
+          }
+        ],
+        "summary": "Update a truck",
+        "tags": [
+          "fleet"
         ]
       }
     }
