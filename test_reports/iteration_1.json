@@ -1,0 +1,49 @@
+{
+  "summary": "Comprehensive E2E test of FreightOS Phase 1. Tested JRN-1 through JRN-25 (frontend-only, localStorage state) plus backend /api/openapi.json reachability. Core flows: first glance metrics, map city labels, truck markers/tooltips/panels, metric breakdown popovers, decision/call/booking/driver flow, idempotency with triple-click approve, reject/request-changes/take-over gating, Truck 102 risk, notifications (Needs you / Updates), reset confirm/cancel, persistence across reload, Fleet<->Dashboard nav, Schedule placeholder, voice listen+cancel, demo script popover, N-key suppression inside command-input. All critical acceptance criteria met.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_journeys": {
+    "JRN-1": "PASS — Header 'Demo West Freight · 4 trucks', scenario clock 'Mon 26 Oct 2026 · 10:00 PT', DEMO DATA pill, Talk to FreightOS; cards $3,700 / $1,054 ($2,646 direct costs · Before overhead) / 29.9% (440 of 1,470 planned miles); markers 101-104 present; attention 101+102; ai-activity-summary 'Finding loads for Truck 104 · Waiting on one broker'.",
+    "JRN-2": "PASS — city-label-oakland/sacramento/stockton/fresno/san-jose/los-angeles and city-label-san-francisco all render (task listed 'sf' as shorthand; actual testid is city-label-san-francisco).",
+    "JRN-3": "PASS — hover truck-marker-103 shows tooltip 'Chloe Chen · On track · ETA 11:30'; click opens truck-panel with 53' dry van, L-301, 11:30, window 11:00–13:00; Esc closes.",
+    "JRN-4": "PASS — truck-availability 'Released Mon 12:00' and driver-availability 'Available Tue 07:00' are separate; L-103 shown with 'Protected commitment'.",
+    "JRN-5/6": "PASS — metric-card-empty and metric-card-costs open panels; current-plan-info-button opens popover.",
+    "JRN-7": "PASS — 'What needs me?' chip returns chat message with chat-item-link-1 and chat-item-link-2 (Delivery at risk · T102 and Return load ready · T101).",
+    "JRN-8": "PASS — 'sing a song' returns chat-fallback-suggestions with commands.",
+    "JRN-9": "PASS — header-mic-button toggles voice-waveform; second click cancels silently (no transcript posted).",
+    "JRN-10..14": "PASS — Approve shows metric-*-preview tags $4,800/$2,100/4.7% while cards unchanged, booking-status-chip 'Awaiting broker'. Call panel: 7 transcript lines (~12s @1.7s), pause/resume works, call-outcome-value 'Confirmed in writing'. After booking cards updated to $4,800 / $2,100 ($2,700 direct · Before overhead) / 4.7% (70 of 1,500 planned miles). attention-item-101 removed; notifications bell count increments. driver-status-chip ends at 'Driver acknowledged · Ava Reed'.",
+    "JRN-15": "PASS — Triple-click approve + reload mid-flow produces single approval/call/booking; element re-renders after first click so later clicks hit a different button and are no-ops. localStorage freightos-demo state is coherent.",
+    "JRN-16": "PASS — reject-confirm-button disabled until reject-reason-input has text.",
+    "JRN-17": "PASS — take-over-button present in decision panel.",
+    "JRN-18": "PASS — request-changes opens changes-reason-input + changes-confirm-button (disabled when empty).",
+    "JRN-19": "PASS — attention-item-102 opens risk panel.",
+    "JRN-20": "PASS — notifications-popover renders 'Needs you' and 'Updates' groups.",
+    "JRN-21": "PASS — reset-demo-cancel keeps state ($4,800 preserved); reset-demo-confirm restores seed ($3,700, etc.).",
+    "JRN-22": "PASS — state survives reload (post-booking $4,800 persisted).",
+    "JRN-23": "PASS — nav-fleet opens fleet-page; nav-dashboard returns to KPIs.",
+    "JRN-24": "PASS — mode-schedule shows schedule-placeholder; mode-map returns to map.",
+    "JRN-25": "PASS — focus/keyboard works; demo-script-popover does NOT activate while typing in command-input (N key suppressed in input).",
+    "Backend": "PASS — GET /api/openapi.json returns 200."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Clean separation of services (dispatch/call/ai/voice/demo/runtime) and store; idempotency appears to be handled at the UI level (buttons disappear/re-render after first state transition) rather than via a transition guard in engine.js. Current observed behavior is idempotent but recommend adding an explicit guard keyed on offerId+action in engine.js for defense in depth.",
+    "maplibreAdapter city label testid is derived from name lower-cased with spaces to dashes → 'city-label-san-francisco'. If product spec expects 'city-label-sf', align either the testid or the spec.",
+    "No obvious MongoDB usage in backend (frontend-only state via localStorage key 'freightos-demo'), as intended for Phase 1."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "none - no auth",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Call flow takes ~12s (7 transcript lines × 1.7s); after call, booking commit happens then driver instructions (1.8s) then ack (2.8s). Always wait ≥18s total after approve before asserting final state. metric-*-preview testids ONLY appear while booking-status-chip = 'Awaiting broker'. status-stepper lives inside decision-panel only; opening call-panel replaces it until 'Back to decision'. Use localStorage.clear() + reload (not just reload) before each independent journey."
+}

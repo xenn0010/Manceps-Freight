@@ -1,0 +1,27 @@
+{
+  "passed": 6,
+  "failed": 2,
+  "retest_needed": true,
+  "bugs": [
+    {"severity": "critical", "title": "Chat panel crashes the whole app (destroy is not a function)",
+     "evidence": "Clicking chip 'What needs me?' -> Emergent runtime error overlay 'destroy is not a function'; React warns useEffect returned non-function. Root cause: components/panels/ChatPanel.jsx:63 `useEffect(() => end.current?.scrollIntoView({...}), ...)` implicitly returns scrollIntoView's return value (a Promise in current Chromium). Fix: wrap body in braces. Reproduced 2/2. App is frontend-only (localStorage); preview URL 200, API 200. Screenshot: ai-command-bar-voice-failure.png",
+     "check": "ai-command-bar-voice"},
+    {"severity": "critical", "title": "Call panel crashes the whole app (same useEffect pattern)",
+     "evidence": "Approve -> open-call-button -> crash 'destroy is not a function', transcript-line-1 never renders. Root cause: components/panels/CallPanel.jsx:27 `useEffect(() => bottom.current?.scrollIntoView({...}), [lines.length])`. Reproduced 2/2. Screenshot: call-booking-driver-ack-failure.png",
+     "check": "call-booking-driver-ack"}
+  ],
+  "action_items": [
+    {"type": "improvement", "detail": "At 1440 the Truck 103 label sits over the 'San Francisco' city label (reads 'S...isco'); truck labels don't overlap each other."},
+    {"type": "note", "detail": "No backend lane: app state is localStorage only (no API-bearing criteria). Booking itself completes in background without opening the call panel (idempotency check passed), so only UI panels crash."}
+  ],
+  "checks": [
+    {"criterion": "JRN-1/2 first glance + map legibility", "name": "first-glance-header-kpis-map", "lane": "browser", "status": "passed", "evidence": "Header/clock 'Mon 26 Oct 2026 · 10:00 PT', $3,700/$1,054/29.9% (440 of 1,470), 4 labels non-overlapping at 1280/1440/1920, legend+attribution visible"},
+    {"criterion": "JRN-3/4 truck select/deselect", "name": "truck-101-select-deselect", "lane": "browser", "status": "passed", "evidence": "Panel shows Mon 12:00, Tue 07:00, L-103 Protected commitment; Esc closes"},
+    {"criterion": "JRN-5 metric breakdown", "name": "metric-breakdowns", "lane": "browser", "status": "passed", "evidence": "Rows 15/10/10/5/400, total 440, formula '440 of 1,470'; costs panel $3,700 / $2,646 / $1,054"},
+    {"criterion": "JRN-7/8/9 AI command bar and voice", "name": "ai-command-bar-voice", "lane": "browser", "status": "failed", "evidence": "pageerror: destroy is not a function on opening chat panel (ChatPanel.jsx:63)"},
+    {"criterion": "JRN-10/11 decision panel and preview", "name": "decision-panel-approve-preview", "lane": "browser", "status": "passed", "evidence": "$1,100, +$1,046 planned contribution, 430/$774/$326/-$720, O-2 $1,600 Phoenix; Awaiting broker, cards unchanged, preview $4,800/$2,100/4.7%"},
+    {"criterion": "JRN-12/13/14 call, booking, driver ack", "name": "call-booking-driver-ack", "lane": "browser", "status": "failed", "evidence": "pageerror: destroy is not a function on opening call panel (CallPanel.jsx:27); transcript never shown"},
+    {"criterion": "JRN-15/16/21/22 idempotency, reject, reset, persistence", "name": "idempotency-reject-reset-persist", "lane": "browser", "status": "passed", "evidence": "Reject confirm disabled until reason; triple approve + reload -> $4,800/$2,100/4.7% (not double counted), persists across reload; Reset -> $3,700 and attention item back"},
+    {"criterion": "JRN-19/20/25 risk, notifications, keyboard", "name": "risk-notifications-keyboard", "lane": "browser", "status": "passed", "evidence": "Truck 102: release 12:30, ETA 15:30, window 14:00–15:00, Revised appointment requested; Needs you/Updates groups; notification opens rate confirmation; focus visible on tab stops"}
+  ]
+}
