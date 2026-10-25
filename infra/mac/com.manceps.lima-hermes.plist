@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  macOS launch agent: starts the `hermes` Lima VM at login, so the gateway and signup
+  worker (systemd user services inside the VM, with linger) come back after a reboot.
+  Install:
+    cp com.manceps.lima-hermes.plist ~/Library/LaunchAgents/
+    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.manceps.lima-hermes.plist
+  Remove:
+    launchctl bootout gui/$(id -u)/com.manceps.lima-hermes
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.manceps.lima-hermes</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/limactl</string>
+    <string>start</string>
+    <string>hermes</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/tmp/lima-hermes-autostart.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/lima-hermes-autostart.log</string>
+</dict>
+</plist>

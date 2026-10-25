@@ -1,0 +1,21 @@
+# systemd user unit for the gateway VM: provisions firms from the Atlas signup queue.
+# Install:  cp hermes-signup-worker.service ~/.config/systemd/user/
+#           systemctl --user daemon-reload && systemctl --user enable --now hermes-signup-worker
+# Needs:    loginctl enable-linger (so it runs with nobody logged in), the worker venv at
+#           ~/work/venvs/signup-worker, and the operator MONGODB_URI in ~/.hermes/.env.
+# The worker exits on a database error; systemd restarts it, so it retries until Atlas is reachable.
+
+[Unit]
+Description=hermes-freight signup worker
+
+[Service]
+Type=simple
+WorkingDirectory=%h/work/hermes-freight/deploy
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=%h/work/venvs/signup-worker/bin/python signup_worker.py --shared-credentials
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=default.target
