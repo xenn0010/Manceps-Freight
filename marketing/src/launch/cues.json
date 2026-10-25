@@ -1,0 +1,28 @@
+{
+  "_doc": "Film-time cues in seconds shared by the Remotion scenes and scripts/mix.mjs. Beat = 0.6 s (Dreamer, 100 BPM); music enters at musicIn.",
+  "duration": 68.4,
+  "musicIn": 4.8,
+  "musicOpen": [12.0, 14.4],
+  "duck": [44.4, 46.8],
+  "night": [54.0, 61.2],
+  "fadeOut": [65.4, 68.4],
+  "scenes": {
+    "night": [0, 7.2],
+    "chaos": [7.2, 14.4],
+    "meet": [14.4, 19.2],
+    "reveal": [19.2, 26.4],
+    "remember": [26.4, 33.6],
+    "works": [33.6, 44.4],
+    "charge": [44.4, 54.0],
+    "sleep": [54.0, 61.2],
+    "end": [61.2, 68.4]
+  },
+  "sfx": {
+    "drone": [0, 6.0],
+    "ring": [2.4, 4.8],
+    "thump": [7.8, 9.6, 12.0],
+    "whoosh": [14.25, 19.05, 61.05],
+    "chime": [49.2],
+    "blip": [56.4, 57.6, 58.8]
+  }
+}

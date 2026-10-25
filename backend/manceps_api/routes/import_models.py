@@ -19,7 +19,7 @@ COLUMN_MAX = 120
 FIELD_MAX = 64
 FILTER_MAX = 100
 
-ImportEntity = Literal["carriers", "drivers", "brokers", "contacts"]
+ImportEntity = Literal["carriers", "drivers", "brokers", "contacts", "loads"]
 ExportEntity = Literal["carriers", "drivers", "trucks", "brokers", "contacts", "facilities"]
 Strategy = Literal["skip", "update", "merge"]
 ExportFormat = Literal["csv", "xlsx"]

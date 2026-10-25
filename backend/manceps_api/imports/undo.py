@@ -31,10 +31,12 @@ RESTORED, REMOVED, SKIPPED = "restored", "removed", "skipped_modified"
 UNDO_ACTIONS = ("created", "updated", "merged")
 REFERENCES: Mapping[str, tuple[tuple[str, str], ...]] = {
     "carriers": (("drivers", "carrier_id"), ("trucks", "carrier_id"), ("consent_events", "subject.id"),
-                 ("notes", "ref.id")),
-    "drivers": (("consent_events", "subject.id"), ("notes", "ref.id")),
+                 ("notes", "ref.id"), ("loads", "carrier_id")),
+    "drivers": (("consent_events", "subject.id"), ("notes", "ref.id"), ("loads", "driver_id"),
+                ("trucks", "driver_id")),
     "brokers": (),
     "contacts": (("facilities", "contact_ids"), ("notes", "ref.id")),
+    "loads": (("approvals", "subject_ref.id"), ("notes", "ref.id")),
 }
 
 

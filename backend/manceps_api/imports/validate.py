@@ -12,6 +12,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from bson import ObjectId
 
@@ -19,16 +20,18 @@ from manceps_core.mongo import Doc, MongoDb
 from manceps_core.repo import brokers, carriers, contacts, fleet
 from manceps_core.repo.errors import Invalid
 
+from . import load_rows
 from .coerce import CoerceError, coerce
 from .errors import RowError
 from .header import Cell, as_list
 from .schema import CARRIER_PHONE, ENTITY_SPECS, NAME, NAME_PARTS, natural_key, normalize_key
 
 DEFAULT_CONTACT_KIND = "other"
+UTC_ZONE = "UTC"
 LIVE = {"deleted_at": None}
 KEY_FIELDS: Mapping[str, Mapping[str, str]] = {
     "carriers": {"phone": "phone"}, "drivers": {"phone": "phone"}, "brokers": {"mc": "mc_number"},
-    "contacts": {"email": "emails", "phone": "phones"},
+    "contacts": {"email": "emails", "phone": "phones"}, "loads": {},
 }
 
 
@@ -103,7 +106,7 @@ def _with_name(values: dict[str, Any]) -> dict[str, Any]:
     return values
 
 
-def _resolve_carrier(db: MongoDb, values: dict[str, Any], cache: dict[str, str | None]) -> dict[str, Any]:
+def _resolve_carrier(db: MongoDb, values: dict[str, Any], cache: dict[str, Any]) -> dict[str, Any]:
     """Turn a driver's carrier phone into the id of a live carrier of this firm.
 
     Args:
@@ -155,7 +158,7 @@ def repo_validate(db: MongoDb, entity: str, values: Mapping[str, Any]) -> dict[s
 
 
 def check_row(db: MongoDb, entity: str, values: dict[str, Any], errors: list[RowError],
-              cache: dict[str, str | None]) -> RowCheck:
+              cache: dict[str, Any], zone: ZoneInfo | None = None) -> RowCheck:
     """Validate one row's values; only fields the file provided are kept (defaults apply at create time).
 
     Args:
@@ -163,7 +166,8 @@ def check_row(db: MongoDb, entity: str, values: dict[str, Any], errors: list[Row
         entity: Entity name.
         values: Values from read_row.
         errors: Coercion errors from read_row.
-        cache: Carrier lookups for drivers.
+        cache: Reference lookups (carriers for drivers; trucks, drivers and carriers for loads).
+        zone: Firm timezone for load times without an offset (UTC when None).
 
     Returns:
         The check.
@@ -171,6 +175,9 @@ def check_row(db: MongoDb, entity: str, values: dict[str, Any], errors: list[Row
     if errors:
         return RowCheck({}, [error.as_dict() for error in errors], [], None)
     try:
+        if entity == "loads":
+            kept = load_rows.load_values(db, values, zone or ZoneInfo(UTC_ZONE), cache)
+            return RowCheck(kept, [], [], natural_key(entity, kept))
         provided = _resolve_carrier(db, dict(values), cache) if entity == "drivers" else dict(values)
         clean = repo_validate(db, entity, provided)
     except Invalid as exc:
@@ -204,6 +211,8 @@ def find_matches(db: MongoDb, entity: str, keys: Sequence[str]) -> dict[str, Obj
     Returns:
         Key to the matching record's id (the oldest one when several match).
     """
+    if entity == "loads":
+        return _load_matches(db, keys)
     spec = ENTITY_SPECS[entity]
     matches: dict[str, ObjectId] = {}
     for kind, field in KEY_FIELDS[entity].items():
@@ -217,6 +226,31 @@ def find_matches(db: MongoDb, entity: str, keys: Sequence[str]) -> dict[str, Obj
             for value in found:
                 if value in wanted:
                     matches.setdefault(f"{kind}:{value}", doc["_id"])
+    return matches
+
+
+def _load_matches(db: MongoDb, keys: Sequence[str]) -> dict[str, ObjectId]:
+    """Find live loads by ref, or by (broker MC, broker ref).
+
+    Args:
+        db: Firm database.
+        keys: Keys like "ref:L-2026-00001" or "broker:123456|VL-30981".
+
+    Returns:
+        Key to the matching load's id (the oldest when several match).
+    """
+    refs = sorted({key.removeprefix("ref:") for key in keys if key.startswith("ref:")})
+    pairs = sorted({tuple(key.removeprefix("broker:").split("|", 1)) for key in keys if key.startswith("broker:")})
+    conditions: list[dict[str, Any]] = [{"ref": {"$in": refs}}] if refs else []
+    conditions += [{"broker_mc": mc, "broker_ref": ref} for mc, ref in pairs]
+    matches: dict[str, ObjectId] = {}
+    if not conditions:
+        return matches
+    for doc in db["loads"].find({"$or": conditions, **LIVE}, {"ref": 1, "broker_mc": 1, "broker_ref": 1}).sort(
+            [("_id", 1)]):
+        matches.setdefault(f"ref:{doc['ref']}", doc["_id"])
+        if doc.get("broker_mc") and doc.get("broker_ref"):
+            matches.setdefault(f"broker:{doc['broker_mc']}|{doc['broker_ref']}", doc["_id"])
     return matches
 
 

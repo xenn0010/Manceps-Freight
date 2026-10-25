@@ -13,7 +13,7 @@ from collections.abc import Callable, Coroutine
 from typing import Annotated, Any, Literal, cast
 
 import structlog
-from fastapi import Depends, Request
+from fastapi import Depends, Query, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from manceps_core import accounts, signups
@@ -229,6 +229,34 @@ async def portal_principal(
                      kind="scoped")
 
 
+ACCESS_TOKEN_QUERY_MAX = 4096
+
+
+async def stream_viewer(
+    request: Request, credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(firm_bearer)],
+    access_token: Annotated[str | None, Query(max_length=ACCESS_TOKEN_QUERY_MAX, description=(
+        "Access token for EventSource clients, which cannot set headers. Accepted only on the events stream; "
+        "the Authorization header wins when both are sent. Redacted from logs."))] = None,
+) -> Principal:
+    """Authenticate a firm member on the SSE route by bearer header or `?access_token=`.
+
+    Args:
+        request: Incoming request.
+        credentials: Bearer credentials.
+        access_token: Token from the query string.
+
+    Returns:
+        The firm principal (any firm role).
+
+    Raises:
+        ApiError: 401, 403, 409 or 503 like every firm route.
+    """
+    if (credentials is None or not credentials.credentials) and access_token:
+        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=access_token)
+    user = await current_user(request, credentials)
+    return await firm_principal(request, user)
+
+
 firm_idempotency = idempotency_dependency(firm_principal)
 
 CurrentUser = Annotated[Principal, Depends(current_user)]
@@ -237,3 +265,4 @@ FirmDispatcher = Annotated[Principal, Depends(require_role("dispatcher"))]
 FirmOwner = Annotated[Principal, Depends(require_role("owner"))]
 PortalPrincipal = Annotated[Principal, Depends(portal_principal)]
 FirmIdempotency = Annotated[IdempotencyGuard, Depends(firm_idempotency)]
+StreamViewer = Annotated[Principal, Depends(stream_viewer)]

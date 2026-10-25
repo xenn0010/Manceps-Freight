@@ -26,6 +26,7 @@ from .logs import configure_logging
 from .middleware import REQUEST_ID_HEADER, BodyLimitMiddleware, BodyLimitRule, RequestContextMiddleware
 from .routes import ROUTERS
 from .settings import Settings, load_settings
+from .sse import EventHub
 
 API_TITLE = "Manceps API"
 API_VERSION = "0.1.0"
@@ -67,6 +68,20 @@ def body_limit_rules(settings: Settings) -> tuple[BodyLimitRule, ...]:
     return (BodyLimitRule("POST", IMPORT_UPLOAD_PATH, settings.import_max_bytes + MULTIPART_OVERHEAD_BYTES),)
 
 
+def event_hub_from_settings(settings: Settings, tenant_db: TenantDb) -> EventHub:
+    """Build the per-process SSE fan-out.
+
+    Args:
+        settings: Validated settings.
+        tenant_db: Firm database handle.
+
+    Returns:
+        The hub.
+    """
+    return EventHub(tenant_db, settings.events_poll_seconds, settings.sse_idle_stop_seconds, settings.sse_queue_size,
+                    settings.sse_max_connections_per_user)
+
+
 def create_app(settings: Settings, client: MongoClientT, clock: Clock = utc_now, owns_client: bool = False,
                integrations: Integrations | None = None) -> FastAPI:
     """Build the API application.
@@ -84,10 +99,12 @@ def create_app(settings: Settings, client: MongoClientT, clock: Clock = utc_now,
     Raises:
         ValueError: If the configured JWT keys are malformed.
     """
+    tenant_db = TenantDb(client)
     context = AppContext(
-        settings, client, client[settings.platform_db], TenantDb(client), clock,
+        settings, client, client[settings.platform_db], tenant_db, clock,
         integrations=integrations if integrations is not None else Integrations.from_settings(settings),
         tokens=TokenService.from_settings(settings, clock), export_store=store_from_settings(settings),
+        event_hub=event_hub_from_settings(settings, tenant_db),
     )
 
     @asynccontextmanager
@@ -96,6 +113,8 @@ def create_app(settings: Settings, client: MongoClientT, clock: Clock = utc_now,
         try:
             yield
         finally:
+            if context.event_hub is not None:
+                await context.event_hub.close()
             if owns_client:
                 client.close()
 

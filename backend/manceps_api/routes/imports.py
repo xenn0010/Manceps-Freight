@@ -25,6 +25,7 @@ from ..auth.principal import FirmDispatcher, FirmViewer
 from ..context import firm_db, get_context
 from ..errors import REPLAY_HEADER, ApiError
 from ..exports.writer import content_disposition, csv_lines, csv_text
+from ..firmzone import firm_zone
 from ..imports import pipeline, records
 from ..imports.schema import ENTITIES, ENTITY_SPECS
 from ..imports.undo import undo_import
@@ -145,7 +146,8 @@ async def imports_create(request: Request, response: Response, principal: FirmDi
         entity, upload = _upload_parts(form)
         job = pipeline.Upload(entity=entity, filename=upload.filename or "", stream=upload.file,
                               allow_sensitive=can_set_terms(principal), who=_who(principal), now=context.clock(),
-                              max_bytes=settings.import_max_bytes, max_rows=settings.import_max_rows)
+                              max_bytes=settings.import_max_bytes, max_rows=settings.import_max_rows,
+                              timezone=firm_zone(request, principal).key)
         doc, replayed = await run_in_threadpool(pipeline.ingest, firm_db(request, principal), job)
     finally:
         await form.close()

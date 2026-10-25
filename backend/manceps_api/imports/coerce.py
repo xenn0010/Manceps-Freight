@@ -14,15 +14,19 @@ from typing import Any
 
 from openpyxl.utils.datetime import CALENDAR_WINDOWS_1900
 
+from manceps_core.loads.money import dollars_to_cents
+
 from .header import as_list, cell_text
 
-KINDS = frozenset({"text", "digits", "phone", "email", "number", "bool", "date", "list", "slug_list"})
+KINDS = frozenset({"text", "digits", "phone", "email", "number", "bool", "date", "datetime", "money", "list",
+                   "slug_list"})
 TRUE_WORDS = frozenset({"yes", "y", "true", "t", "1", "x", "signed", "on"})
 FALSE_WORDS = frozenset({"no", "n", "false", "f", "0", "off", "unsigned"})
 NUMBER_NOISE = re.compile(r"[\s$,%]")
 LIST_SEPARATORS = re.compile(r"\s*(?::::|[,;|/\n])\s*")
 SLUG_NOISE = re.compile(r"[^a-z0-9]+")
 DATE_FORMATS = ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y", "%Y/%m/%d", "%m-%d-%Y", "%d %b %Y", "%b %d, %Y")
+TIME_SUFFIXES = (" %H:%M", " %H:%M:%S", " %I:%M %p", "T%H:%M", "T%H:%M:%S")
 MIN_SERIAL = 1.0
 MAX_SERIAL = 2_958_465.0  # 9999-12-31 in the 1900 system
 MAX_LIST_ITEMS = 50
@@ -144,6 +148,62 @@ def _date(value: Any, epoch: datetime | None) -> datetime | None:
     raise CoerceError("expected a date such as 2026-11-30")
 
 
+def _datetime(value: Any, epoch: datetime | None) -> datetime | None:
+    """Read a date with an optional time of day; times without a zone stay naive (the caller localizes them).
+
+    Accepts datetime cells, Excel serials (the fraction is the time), ISO 8601 with or without an offset, and the
+    date formats of `_date` followed by "07:00", "07:00:00" or "7:00 AM".
+
+    Args:
+        value: Cell.
+        epoch: Workbook epoch for serial numbers.
+
+    Returns:
+        The datetime (aware only when the cell carried a zone), or None for an empty cell.
+
+    Raises:
+        CoerceError: If it is not a date and time.
+    """
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, int | float) and not isinstance(value, bool):
+        return _serial(float(value), epoch).replace(tzinfo=None)
+    text = cell_text(value) if not isinstance(value, date | list | bool) else ""
+    if not text:
+        return _date(value, epoch) if isinstance(value, date) else None
+    try:
+        return datetime.fromisoformat(text)
+    except ValueError:
+        pass
+    for pattern in DATE_FORMATS:
+        for suffix in ("", *TIME_SUFFIXES):
+            try:
+                return datetime.strptime(text, pattern + suffix)
+            except ValueError:
+                continue
+    raise CoerceError("expected a date and time such as 2026-11-30 07:00")
+
+
+def _money(value: Any) -> int | None:
+    """Read a dollar amount as integer cents ("$2,240", 650.5).
+
+    Args:
+        value: Cell.
+
+    Returns:
+        Cents, or None for an empty cell.
+
+    Raises:
+        CoerceError: If it is not a non-negative amount.
+    """
+    if value is None or (isinstance(value, str) and not cell_text(value)):
+        return None
+    try:
+        return dollars_to_cents(value if isinstance(value, int | float | str) else cell_text(value))
+    except ValueError as exc:
+        raise CoerceError(str(exc)) from exc
+
+
 def _list(value: Any) -> list[str] | None:
     """Split a multi-value cell; a cell that is already a list is trimmed.
 
@@ -205,6 +265,10 @@ def coerce(kind: str, value: Any, epoch: datetime | None) -> Any:
         return _bool(value)
     if kind == "date":
         return _date(value, epoch)
+    if kind == "datetime":
+        return _datetime(value, epoch)
+    if kind == "money":
+        return _money(value)
     if kind == "list":
         return _list(value)
     if kind == "slug_list":

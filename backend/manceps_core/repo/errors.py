@@ -42,6 +42,10 @@ class Conflict(RepoError):
     """The write clashes with existing data or a business rule (HTTP 409)."""
 
 
+class Forbidden(RepoError):
+    """The caller's role or kind may not do this (HTTP 403)."""
+
+
 class Invalid(RepoError):
     """A field value breaks a data rule (HTTP 422, same shape as request validation errors)."""
 

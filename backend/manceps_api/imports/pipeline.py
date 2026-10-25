@@ -12,6 +12,7 @@ from collections.abc import Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, BinaryIO
+from zoneinfo import ZoneInfo
 
 from bson import ObjectId
 from pymongo import ReturnDocument
@@ -53,6 +54,7 @@ VALIDATION_LOCK = timedelta(minutes=10)
 CONFLICT = 409
 SOURCES: Mapping[str, str] = {"vcf": "vcard", "google": "google"}
 DEFAULT_SOURCE = "import"
+DEFAULT_TIMEZONE = "America/Chicago"
 
 
 @dataclass(frozen=True)
@@ -67,6 +69,7 @@ class Upload:
     now: datetime
     max_bytes: int
     max_rows: int
+    timezone: str = DEFAULT_TIMEZONE
 
 
 @dataclass(frozen=True)
@@ -78,6 +81,7 @@ class _Sheet:
     mapping: Mapping[str, str | None]
     epoch: datetime | None
     checked: bool
+    timezone: str = DEFAULT_TIMEZONE
 
 
 def _batches(rows: Iterable[ParsedRow]) -> Iterator[list[ParsedRow]]:
@@ -100,7 +104,7 @@ def _batches(rows: Iterable[ParsedRow]) -> Iterator[list[ParsedRow]]:
 
 
 def _check_batch(db: MongoDb, sheet: _Sheet, batch: Sequence[ParsedRow], seen: dict[str, int],
-                 cache: dict[str, str | None]) -> list[tuple[int, RowCheck]]:
+                 cache: dict[str, Any]) -> list[tuple[int, RowCheck]]:
     """Check a batch of rows (or leave them unchecked while required fields are unmapped).
 
     Args:
@@ -121,7 +125,7 @@ def _check_batch(db: MongoDb, sheet: _Sheet, batch: Sequence[ParsedRow], seen: d
             checks.append((row.row_no, RowCheck({}, [], [], None)))
         else:
             values, errors = read_row(sheet.entity, sheet.columns, sheet.mapping, row.cells or (), sheet.epoch)
-            checks.append((row.row_no, check_row(db, sheet.entity, values, errors, cache)))
+            checks.append((row.row_no, check_row(db, sheet.entity, values, errors, cache, ZoneInfo(sheet.timezone))))
     if sheet.checked:
         classify(db, sheet.entity, checks, seen)
     return checks
@@ -144,7 +148,7 @@ def _store_rows(db: MongoDb, import_id: ObjectId, sheet: _Sheet, rows: Iterable[
     """
     stats = empty_stats()
     seen: dict[str, int] = {}
-    cache: dict[str, str | None] = {}
+    cache: dict[str, Any] = {}
     for batch in _batches(rows):
         checks = _check_batch(db, sheet, batch, seen, cache)
         docs: list[Doc] = []
@@ -209,8 +213,9 @@ def _new_doc(import_id: ObjectId, upload: Upload, parsed: ParsedFile, digest: st
             "suggested_mapping": mapping_pairs(suggested), "unmapped_required": missing,
             "ignored_consent_columns": mappings.consent_columns(parsed.columns),
             "status": UPLOADED if missing else MAPPED, "allow_sensitive": upload.allow_sensitive,
-            "idempotency_hash": digest, "created_by": dict(upload.who), "created_at": upload.now,
-            "updated_at": upload.now, "duplicate_strategy": None, "undo_until": None, "progress": None}
+            "idempotency_hash": digest, "timezone": upload.timezone, "created_by": dict(upload.who),
+            "created_at": upload.now, "updated_at": upload.now, "duplicate_strategy": None, "undo_until": None,
+            "progress": None}
 
 
 def ingest(db: MongoDb, upload: Upload) -> tuple[Doc, bool]:
@@ -236,7 +241,8 @@ def ingest(db: MongoDb, upload: Upload) -> tuple[Doc, bool]:
         raise ImportFileError(UNPROCESSABLE, "vcard_contacts_only", "vCard files can only be imported as contacts")
     parsed = parse_file(file_type, upload.stream, upload.max_rows)
     doc = _new_doc(ObjectId(), upload, parsed, digest, size)
-    sheet = _Sheet(upload.entity, parsed.columns, mapping_of(doc), parsed.epoch, doc["status"] == MAPPED)
+    sheet = _Sheet(upload.entity, parsed.columns, mapping_of(doc), parsed.epoch, doc["status"] == MAPPED,
+                   upload.timezone)
     try:
         doc["stats"] = _store_rows(db, doc["_id"], sheet, parsed.rows, upload.now, upload.allow_sensitive)
         db[IMPORTS].insert_one(doc)
@@ -296,7 +302,8 @@ def remap(db: MongoDb, raw_id: Any, proposed: Mapping[str, str | None], allow_se
     current = load_import(db, raw_id)
     complete = mappings.check_mapping(current["entity"], current["columns"], proposed)
     before = _claim_validation(db, current["_id"], now)
-    sheet = _Sheet(before["entity"], before["columns"], complete, epoch_of(before), True)
+    sheet = _Sheet(before["entity"], before["columns"], complete, epoch_of(before), True,
+                   str(before.get("timezone") or DEFAULT_TIMEZONE))
     stats = _recheck_rows(db, before["_id"], sheet, allow_sensitive)
     updated = db[IMPORTS].find_one_and_update(
         {"_id": before["_id"], "status": VALIDATING},
@@ -355,7 +362,7 @@ def _recheck_rows(db: MongoDb, import_id: ObjectId, sheet: _Sheet, allow_sensiti
     """
     stats = empty_stats()
     seen: dict[str, int] = {}
-    cache: dict[str, str | None] = {}
+    cache: dict[str, Any] = {}
     pending: list[tuple[ObjectId, ParsedRow]] = []
     for item in _stored_rows(db, import_id):
         pending.append(item)
@@ -368,7 +375,7 @@ def _recheck_rows(db: MongoDb, import_id: ObjectId, sheet: _Sheet, allow_sensiti
 
 
 def _write_checks(db: MongoDb, sheet: _Sheet, pending: Sequence[tuple[ObjectId, ParsedRow]], seen: dict[str, int],
-                  cache: dict[str, str | None], stats: dict[str, int], allow_sensitive: bool) -> None:
+                  cache: dict[str, Any], stats: dict[str, int], allow_sensitive: bool) -> None:
     """Check one batch of stored rows and save the results.
 
     Args:

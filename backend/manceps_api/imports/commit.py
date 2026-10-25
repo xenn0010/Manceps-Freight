@@ -24,7 +24,7 @@ from pymongo.errors import DuplicateKeyError
 from manceps_core import events
 from manceps_core.clock import Clock
 from manceps_core.mongo import Doc, MongoDb
-from manceps_core.repo import brokers, carriers, contacts, fleet
+from manceps_core.repo import brokers, carriers, contacts, fleet, loads
 from manceps_core.repo.errors import RepoError
 from manceps_core.repo.store import WriteContext
 
@@ -195,6 +195,8 @@ def _write_new(db: MongoDb, ctx: WriteContext, job: Doc, values: Mapping[str, An
         return fleet.create_driver(db, ctx, values, target_id)
     if entity == "brokers":
         return brokers.create_broker(db, ctx, values, target_id)
+    if entity == "loads":
+        return loads.create_load(db, ctx, {key: value for key, value in values.items() if key != "ref"}, target_id)
     contact = {"kind": DEFAULT_CONTACT_KIND, "source": job.get("source") or "import", **values}
     return contacts.create_record(db, ctx, "contact", contact, target_id)
 
@@ -279,6 +281,8 @@ def _write_update(db: MongoDb, ctx: WriteContext, job: Doc, before: Doc, changes
         return fleet.update_record(db, ctx, "driver", target_id, changes)
     if entity == "brokers":
         return brokers.update_broker(db, ctx, before["mc_number"], changes)
+    if entity == "loads":
+        return loads.update_load(db, ctx, target_id, changes)
     return contacts.update_record(db, ctx, "contact", target_id, changes)
 
 

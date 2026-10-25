@@ -18,6 +18,7 @@ from .auth.tokens import TokenService
 from .exports.store import ExportStore
 from .integrations.configured import Integrations
 from .settings import Settings
+from .sse import EventHub
 
 log = structlog.get_logger(__name__)
 
@@ -34,6 +35,7 @@ class AppContext:
     integrations: Integrations = field(default_factory=Integrations)
     tokens: TokenService | None = None
     export_store: ExportStore | None = None
+    event_hub: EventHub | None = None
     indexes_ready: bool = False
 
     def ensure_indexes(self) -> bool:

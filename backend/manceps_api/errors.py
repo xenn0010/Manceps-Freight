@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from manceps_core.repo.errors import Conflict, Invalid, NotFound, RepoError
+from manceps_core.repo.errors import Conflict, Forbidden, Invalid, NotFound, RepoError
 from manceps_core.tenancy import TenantError
 
 log = structlog.get_logger(__name__)
@@ -36,7 +36,8 @@ VALIDATION_MESSAGE = "request validation failed"
 TENANT_MESSAGE = "no active firm for this request"
 VALIDATION_ERROR_KEYS = ("loc", "msg", "type")
 REPLAY_HEADER = "Idempotency-Replayed"
-REPO_STATUS: tuple[tuple[type[RepoError], int], ...] = ((NotFound, 404), (Conflict, 409), (Invalid, 422))
+REPO_STATUS: tuple[tuple[type[RepoError], int], ...] = ((NotFound, 404), (Conflict, 409), (Invalid, 422),
+                                                      (Forbidden, 403))
 REPO_DEFAULT_STATUS = 400
 
 ExcT = TypeVar("ExcT", bound=Exception)
@@ -192,7 +193,7 @@ async def _validation_error(_request: Request, exc: Exception) -> JSONResponse:
 
 
 async def _repo_error(_request: Request, exc: Exception) -> JSONResponse:
-    """Render a repository refusal: not found 404, conflict 409, invalid 422.
+    """Render a repository refusal: not found 404, conflict 409, invalid 422, forbidden 403.
 
     Args:
         _request: Request.

@@ -73,6 +73,7 @@ class TruckFields(StrictModel):
     plate: Number | None = None
     plate_state: Code | None = None
     max_weight_lbs: int | None = None
+    driver_id: Annotated[str, Field(max_length=ID_MAX, description="Assigned driver (same carrier).")] | None = None
 
 
 class TruckCreate(TruckFields):
@@ -100,6 +101,7 @@ class Truck(BaseModel):
     plate: str | None
     plate_state: str | None
     max_weight_lbs: int | None
+    driver_id: str | None
     created_at: datetime
     updated_at: datetime
 
@@ -133,7 +135,7 @@ def render_truck(doc: Doc) -> Truck:
     return Truck(id=str(doc["_id"]), carrier_id=str(doc["carrier_id"]), unit=str(doc["unit"]),
                  equipment=text_of(doc, "equipment"), vin=text_of(doc, "vin"), plate=text_of(doc, "plate"),
                  plate_state=text_of(doc, "plate_state"), max_weight_lbs=weight if isinstance(weight, int) else None,
-                 created_at=doc["created_at"], updated_at=doc["updated_at"])
+                 driver_id=text_of(doc, "driver_id"), created_at=doc["created_at"], updated_at=doc["updated_at"])
 
 
 @router.get("/drivers", operation_id="drivers_list", summary="List drivers")

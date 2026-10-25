@@ -105,6 +105,47 @@ def _driver_rules(db: MongoDb) -> Mapping[str, Rule]:
             "license_state": fields.state, "license_expires_at": fields.aware_datetime}
 
 
+def _driver_ref(db: MongoDb) -> Rule:
+    """Build a rule checking driver_id names a live driver of this firm.
+
+    Args:
+        db: Firm database.
+
+    Returns:
+        The rule, returning the driver id text.
+    """
+
+    def rule(field: str, value: Any) -> str:
+        try:
+            driver = get_by_id(db, DRIVERS, value, "driver")
+        except NotFound as exc:
+            raise Invalid(field, "no such driver in this firm") from exc
+        return str(driver["_id"])
+
+    return rule
+
+
+def check_truck_driver(db: MongoDb, truck: Mapping[str, Any]) -> None:
+    """Require a truck's assigned driver to drive for the truck's carrier.
+
+    Args:
+        db: Firm database.
+        truck: Truck fields after the change.
+
+    Raises:
+        Invalid: If the driver belongs to another carrier.
+    """
+    driver_id = truck.get("driver_id")
+    if driver_id is None:
+        return
+    try:
+        driver = get_by_id(db, DRIVERS, driver_id, "driver")
+    except NotFound as exc:
+        raise Invalid("driver_id", "no such driver in this firm") from exc
+    if str(driver.get("carrier_id")) != str(truck.get("carrier_id")):
+        raise Invalid("driver_id", "this driver belongs to another carrier")
+
+
 def _truck_rules(db: MongoDb) -> Mapping[str, Rule]:
     """Rules for truck fields.
 
@@ -117,7 +158,7 @@ def _truck_rules(db: MongoDb) -> Mapping[str, Rule]:
     return {"carrier_id": _carrier_ref(db), "unit": lambda field, value: fields.text(field, value, UNIT_MAX),
             "equipment": lambda field, value: fields.choice(field, value, EQUIPMENT_TYPES), "vin": _vin,
             "plate": lambda field, value: fields.text(field, value, PLATE_MAX), "plate_state": fields.state,
-            "max_weight_lbs": _weight}
+            "max_weight_lbs": _weight, "driver_id": _driver_ref(db)}
 
 
 @dataclass(frozen=True)
@@ -197,6 +238,8 @@ def _create(db: MongoDb, ctx: WriteContext, kind: str, values: Mapping[str, Any]
     """
     spec = SPECS[kind]
     clean = validate_new(db, kind, values)
+    if kind == "truck":
+        check_truck_driver(db, clean)
     return insert(db, ctx, spec.collection, kind, {**defaults, **clean}, spec.duplicate, record_id)
 
 
@@ -285,6 +328,8 @@ def update_record(db: MongoDb, ctx: WriteContext, kind: str, record_id: Any, cha
     clean = _validate(spec.rules(db), changes, spec.required)
     if kind == "driver":
         clean = consent.phone_changes(current, clean)
+    elif {"driver_id", "carrier_id"} & clean.keys():
+        check_truck_driver(db, {**current, **clean})
     after = update(db, ctx, spec.collection, kind, current, clean, spec.duplicate)
     if "consent" not in clean:
         return after

@@ -19,6 +19,12 @@ DEFAULT_API_PORT = 8000
 DEFAULT_TRUSTED_PROXY_HOPS = 1
 MAX_TRUSTED_PROXY_HOPS = 10
 DEFAULT_MAX_BODY_BYTES = 1024 * 1024
+DEFAULT_EVENTS_POLL_SECONDS = 1.0
+DEFAULT_SSE_KEEPALIVE_SECONDS = 15.0
+DEFAULT_SSE_IDLE_STOP_SECONDS = 30.0
+DEFAULT_SSE_MAX_STREAM_SECONDS = 300.0
+DEFAULT_SSE_MAX_CONNECTIONS_PER_USER = 5
+DEFAULT_SSE_QUEUE_SIZE = 100
 MAX_TCP_PORT = 65_535
 WILDCARD_ORIGIN = "*"
 DEV_OTP_CODE_FORMAT = re.compile(r"[0-9]{6}")
@@ -76,6 +82,12 @@ class Settings(BaseSettings):
     import_max_rows: int = Field(default=DEFAULT_IMPORT_MAX_ROWS, gt=0)
     import_undo_hours: int = Field(default=DEFAULT_IMPORT_UNDO_HOURS, gt=0)
     export_dir: str | None = None
+    events_poll_seconds: float = Field(default=DEFAULT_EVENTS_POLL_SECONDS, gt=0)
+    sse_keepalive_seconds: float = Field(default=DEFAULT_SSE_KEEPALIVE_SECONDS, gt=0)
+    sse_idle_stop_seconds: float = Field(default=DEFAULT_SSE_IDLE_STOP_SECONDS, ge=0)
+    sse_max_stream_seconds: float = Field(default=DEFAULT_SSE_MAX_STREAM_SECONDS, gt=0)
+    sse_max_connections_per_user: int = Field(default=DEFAULT_SSE_MAX_CONNECTIONS_PER_USER, gt=0)
+    sse_queue_size: int = Field(default=DEFAULT_SSE_QUEUE_SIZE, gt=0)
     log_level: LogLevel = "INFO"
     api_host: str = "127.0.0.1"
     api_port: int = Field(default=DEFAULT_API_PORT, gt=0, le=MAX_TCP_PORT)

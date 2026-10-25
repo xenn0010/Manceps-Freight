@@ -16,6 +16,7 @@ dependencies = [
     "httpx>=0.27,<1",
     "dnspython>=2.6,<3",
     "defusedxml==0.7.1",
+    "stripe>=12,<14",
 ]
 
 [project.scripts]
