@@ -175,5 +175,5 @@ def sign_in(context: AppContext, request: Request, response: Response, user: Doc
     db[accounts.USERS].update_one({"_id": user["_id"]}, {"$set": {"last_login_at": now}})
     ttl = timedelta(days=context.settings.refresh_token_days)
     session, raw = create_session(db, str(user["_id"]), target.tenant_id, now, ttl, user_agent(request),
-                                  client_ip(request, context.settings.trust_proxy))
+                                  client_ip(request, context.settings), int(user["token_epoch"]))
     return respond(context, request, response, user, session, raw, target, signup_token)

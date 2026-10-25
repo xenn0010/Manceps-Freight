@@ -10,11 +10,14 @@ from pydantic import AwareDatetime, BaseModel, Field
 
 from manceps_core.mongo import Doc
 from manceps_core.repo import carriers, fields
+from manceps_core.tenancy import PlatformRepo, Principal
 
+from .. import auditing
 from ..auditing import write_context
 from ..auth.models import StrictModel
 from ..auth.principal import FirmDispatcher, FirmIdempotency, FirmOwner, FirmViewer
-from ..context import firm_db
+from ..auth.scoped import revoke_subject_links
+from ..context import firm_db, get_context
 from ..pagination import DEFAULT_LIMIT, CursorQuery, LimitQuery, Page, decode_cursor, page_of
 from .common import (
     ConsentState,
@@ -156,6 +159,22 @@ def render_carrier(doc: Doc) -> Carrier:
                    updated_at=doc.get("updated_at"))
 
 
+def _revoke_links(request: Request, principal: Principal, carrier: Doc) -> None:
+    """Revoke an offboarded carrier's portal links (audited when any were live).
+
+    Args:
+        request: Incoming request.
+        principal: Firm principal.
+        carrier: The carrier after offboarding.
+    """
+    context = get_context(request)
+    repo = PlatformRepo.for_principal(context.platform_db, principal)
+    revoked = revoke_subject_links(repo, "carrier", str(carrier["_id"]), context.clock())
+    if revoked:
+        auditing.record(request, principal, "carrier.links_revoke", {"type": "carrier", "id": str(carrier["_id"])},
+                        None, {"revoked": revoked, "reason": carriers.OFFBOARDED})
+
+
 @router.get("/carriers", operation_id="carriers_list", summary="List carriers")
 def carriers_list(request: Request, principal: FirmViewer, status: CarrierStatus | None = None,
                   equipment: Annotated[str | None, Query(max_length=EQUIPMENT_MAX)] = None,
@@ -233,7 +252,9 @@ def carriers_update(carrier_id: RecordId, body: CarrierPatch, request: Request, 
 
     Fee, floor, agreement and consent are sensitive: a dispatcher gets 409 approval_required
     (details.approval_kind = carrier_terms_change); the owner writes fee, floor and agreement directly; consent
-    always goes through POST /v1/carriers/{id}/consent (422 use_consent_endpoint).
+    always goes through POST /v1/carriers/{id}/consent (422 use_consent_endpoint). A new phone number starts
+    without consent (the old number's consent is revoked in the ledger). Setting status offboarded revokes the
+    carrier's portal links.
 
     Args:
         carrier_id: Carrier id.
@@ -249,12 +270,14 @@ def carriers_update(carrier_id: RecordId, body: CarrierPatch, request: Request, 
     """
     doc = carriers.update_carrier(firm_db(request, principal), write_context(request, principal), carrier_id,
                                   body.model_dump(exclude_unset=True), can_set_terms(principal))
+    if doc.get("status") == carriers.OFFBOARDED:
+        _revoke_links(request, principal, doc)
     return render_carrier(doc)
 
 
 @router.delete("/carriers/{carrier_id}", status_code=204, operation_id="carriers_delete", summary="Offboard a carrier")
 def carriers_delete(carrier_id: RecordId, request: Request, principal: FirmOwner) -> Response:
-    """Offboard (soft-delete) a carrier; its phone number can be added again later.
+    """Offboard (soft-delete) a carrier and revoke its portal links; its phone number can be added again later.
 
     Args:
         carrier_id: Carrier id.
@@ -267,5 +290,6 @@ def carriers_delete(carrier_id: RecordId, request: Request, principal: FirmOwner
     Raises:
         RepoError: 404, or 409 carrier_has_open_loads.
     """
-    carriers.delete_carrier(firm_db(request, principal), write_context(request, principal), carrier_id)
+    doc = carriers.delete_carrier(firm_db(request, principal), write_context(request, principal), carrier_id)
+    _revoke_links(request, principal, doc)
     return Response(status_code=204)

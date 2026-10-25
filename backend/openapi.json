@@ -3014,6 +3014,11 @@
             ],
             "title": "Email"
           },
+          "email_verified": {
+            "description": "True once the email was confirmed through a sign-in link.",
+            "title": "Email Verified",
+            "type": "boolean"
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -3049,6 +3054,7 @@
           "id",
           "phone",
           "email",
+          "email_verified",
           "name",
           "status"
         ],
@@ -3226,7 +3232,7 @@
       },
       "OtpVerifyRequest": {
         "additionalProperties": false,
-        "description": "Check a code; a phone with no account also needs the signup fields.",
+        "description": "Prove the phone with a code, or with the signup ticket a code earned; a phone with no account also needs the\nsignup fields (send them with the code, or with the ticket from the 422 signup_details_required answer).",
         "properties": {
           "accept_terms": {
             "anyOf": [
@@ -3241,9 +3247,16 @@
             "title": "Accept Terms"
           },
           "code": {
-            "pattern": "^\\d{4,10}$",
-            "title": "Code",
-            "type": "string"
+            "anyOf": [
+              {
+                "pattern": "^[0-9]{4,10}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
           },
           "firm_name": {
             "anyOf": [
@@ -3261,11 +3274,23 @@
             "maxLength": 32,
             "title": "Phone",
             "type": "string"
+          },
+          "signup_ticket": {
+            "anyOf": [
+              {
+                "pattern": "^mcs_[A-Za-z0-9_-]{43}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "From error.details.signup_ticket of a 422 signup_details_required.",
+            "title": "Signup Ticket"
           }
         },
         "required": [
-          "phone",
-          "code"
+          "phone"
         ],
         "title": "OtpVerifyRequest",
         "type": "object"
@@ -4772,7 +4797,7 @@
     },
     "/v1/auth/magic-link/verify": {
       "post": {
-        "description": "Spend a magic-link token and sign the user in.\n\nArgs:\n    body: The token from the link.\n    request: Incoming request.\n    response: Outgoing response.\n\nReturns:\n    Tokens.\n\nRaises:\n    ApiError: 503 when not configured, 429, 400 invalid_token for unknown, used or expired tokens, 401 when the\n        account is disabled.",
+        "description": "Spend a magic-link token and sign the user in; using the link proves the address, so it is marked verified\n(only when the user still has the address the link was sent to).\n\nArgs:\n    body: The token from the link.\n    request: Incoming request.\n    response: Outgoing response.\n\nReturns:\n    Tokens.\n\nRaises:\n    ApiError: 503 when not configured, 429, 400 invalid_token for unknown, used or expired tokens, 401 when the\n        account is disabled.",
         "operationId": "auth_magic_link_verify",
         "requestBody": {
           "content": {
@@ -4876,7 +4901,7 @@
     },
     "/v1/auth/otp/verify": {
       "post": {
-        "description": "Check a code; sign in an existing user, or create the user and queue the firm for a new phone.\n\nArgs:\n    body: Phone, code, and for a new phone firm_name and accept_terms.\n    request: Incoming request.\n    response: Outgoing response (refresh cookie for browsers).\n\nReturns:\n    Tokens; a new signup gets tid=null, role=owner, state=provisioning and a signup_token.\n\nRaises:\n    ApiError: 503 without Twilio or JWT keys, 422 signup_details_required, 429, 502, 400 invalid_code, 409.",
+        "description": "Check a code (or signup ticket); sign in an existing user, or create the user and queue the firm.\n\nArgs:\n    body: Phone, code or signup_ticket, and for a new phone firm_name and accept_terms.\n    request: Incoming request.\n    response: Outgoing response (refresh cookie for browsers).\n\nReturns:\n    Tokens; a new signup gets tid=null, role=owner, state=provisioning and a signup_token.\n\nRaises:\n    ApiError: 503 without Twilio or JWT keys, 429, 400 invalid_code or invalid_ticket, 502, 422\n        signup_details_required (only after an approved code, with details.signup_ticket), 409.",
         "operationId": "auth_otp_verify",
         "requestBody": {
           "content": {
@@ -4928,7 +4953,7 @@
     },
     "/v1/auth/refresh": {
       "post": {
-        "description": "Exchange a refresh token (body for native clients, mc_refresh cookie for browsers) for new tokens.\n\nArgs:\n    request: Incoming request.\n    response: Outgoing response.\n    body: Optional body with refresh_token.\n    mc_refresh: Browser refresh cookie.\n\nReturns:\n    New tokens; the old refresh token is spent.\n\nRaises:\n    ApiError: 401 invalid_refresh or refresh_reuse (the family is then revoked), 429, 503.",
+        "description": "Exchange a refresh token (body for native clients, mc_refresh cookie for browsers) for new tokens.\n\nArgs:\n    request: Incoming request.\n    response: Outgoing response.\n    body: Optional body with refresh_token.\n    mc_refresh: Browser refresh cookie.\n\nReturns:\n    New tokens; the old refresh token is spent.\n\nRaises:\n    ApiError: 401 invalid_refresh (also after logout-all bumped the user's epoch) or refresh_reuse (the family\n        is then revoked), 429, 503.",
         "operationId": "auth_refresh",
         "parameters": [
           {
@@ -5006,7 +5031,7 @@
     },
     "/v1/auth/scoped/exchange": {
       "post": {
-        "description": "Exchange a carrier link token for a 60-minute portal token (aud=portal, role=carrier, sub=carrier id).\n\nArgs:\n    body: Link token.\n    request: Incoming request.\n\nReturns:\n    The portal token.\n\nRaises:\n    ApiError: 401 invalid_link for unknown, revoked or expired links; 429; 503 without JWT keys.",
+        "description": "Exchange a carrier link token for a 60-minute portal token (aud=portal, role=carrier, sub=carrier id).\n\nArgs:\n    body: Link token.\n    request: Incoming request.\n\nReturns:\n    The portal token.\n\nRaises:\n    ApiError: 401 invalid_link for unknown, revoked or expired links, a suspended firm or an offboarded or\n        deleted carrier; 429; 503 without JWT keys.",
         "operationId": "auth_scoped_exchange",
         "requestBody": {
           "content": {
@@ -5296,7 +5321,7 @@
             "required": true,
             "schema": {
               "description": "MC number, digits or MC-123456.",
-              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "pattern": "^(?:[Mm][Cc][- ]?)?[0-9]{1,10}$",
               "title": "Mc",
               "type": "string"
             }
@@ -5355,7 +5380,7 @@
             "required": true,
             "schema": {
               "description": "MC number, digits or MC-123456.",
-              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "pattern": "^(?:[Mm][Cc][- ]?)?[0-9]{1,10}$",
               "title": "Mc",
               "type": "string"
             }
@@ -5426,7 +5451,7 @@
             "required": true,
             "schema": {
               "description": "MC number, digits or MC-123456.",
-              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "pattern": "^(?:[Mm][Cc][- ]?)?[0-9]{1,10}$",
               "title": "Mc",
               "type": "string"
             }
@@ -5504,7 +5529,7 @@
             "required": true,
             "schema": {
               "description": "MC number, digits or MC-123456.",
-              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "pattern": "^(?:[Mm][Cc][- ]?)?[0-9]{1,10}$",
               "title": "Mc",
               "type": "string"
             }
@@ -5598,7 +5623,7 @@
             "required": true,
             "schema": {
               "description": "MC number, digits or MC-123456.",
-              "pattern": "^(?:[Mm][Cc][- ]?)?\\d{1,10}$",
+              "pattern": "^(?:[Mm][Cc][- ]?)?[0-9]{1,10}$",
               "title": "Mc",
               "type": "string"
             }
@@ -5869,7 +5894,7 @@
     },
     "/v1/carriers/{carrier_id}": {
       "delete": {
-        "description": "Offboard (soft-delete) a carrier; its phone number can be added again later.\n\nArgs:\n    carrier_id: Carrier id.\n    request: Incoming request.\n    principal: Firm owner.\n\nReturns:\n    204.\n\nRaises:\n    RepoError: 404, or 409 carrier_has_open_loads.",
+        "description": "Offboard (soft-delete) a carrier and revoke its portal links; its phone number can be added again later.\n\nArgs:\n    carrier_id: Carrier id.\n    request: Incoming request.\n    principal: Firm owner.\n\nReturns:\n    204.\n\nRaises:\n    RepoError: 404, or 409 carrier_has_open_loads.",
         "operationId": "carriers_delete",
         "parameters": [
           {
@@ -5982,7 +6007,7 @@
         ]
       },
       "patch": {
-        "description": "Change a carrier (audited with before and after hashes).\n\nFee, floor, agreement and consent are sensitive: a dispatcher gets 409 approval_required\n(details.approval_kind = carrier_terms_change); the owner writes fee, floor and agreement directly; consent\nalways goes through POST /v1/carriers/{id}/consent (422 use_consent_endpoint).\n\nArgs:\n    carrier_id: Carrier id.\n    body: Changes.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The updated carrier.\n\nRaises:\n    RepoError: 404, 409 approval_required or duplicate_phone, 422.",
+        "description": "Change a carrier (audited with before and after hashes).\n\nFee, floor, agreement and consent are sensitive: a dispatcher gets 409 approval_required\n(details.approval_kind = carrier_terms_change); the owner writes fee, floor and agreement directly; consent\nalways goes through POST /v1/carriers/{id}/consent (422 use_consent_endpoint). A new phone number starts\nwithout consent (the old number's consent is revoked in the ledger). Setting status offboarded revokes the\ncarrier's portal links.\n\nArgs:\n    carrier_id: Carrier id.\n    body: Changes.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The updated carrier.\n\nRaises:\n    RepoError: 404, 409 approval_required or duplicate_phone, 422.",
         "operationId": "carriers_update",
         "parameters": [
           {
@@ -6054,7 +6079,7 @@
     },
     "/v1/carriers/{carrier_id}/consent": {
       "post": {
-        "description": "Append a grant to the consent ledger, then refresh the carrier's consent cache from the ledger.\n\nArgs:\n    carrier_id: Carrier id.\n    body: Channel, method and optional evidence.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The carrier with its refreshed consent.\n\nRaises:\n    RepoError: 404 unknown carrier, 422 blank method.",
+        "description": "Append a grant to the consent ledger, then refresh the carrier's consent cache from the ledger.\n\nGranting consent is a terms change: only the owner records it directly; a dispatcher gets 409\napproval_required (details.approval_kind = carrier_terms_change). Revoking is never gated.\n\nArgs:\n    carrier_id: Carrier id.\n    body: Channel, method and optional evidence.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The carrier with its refreshed consent.\n\nRaises:\n    RepoError: 404 unknown carrier, 409 approval_required for a dispatcher, 422 blank method.",
         "operationId": "carrier_consent_grant",
         "parameters": [
           {
@@ -6126,7 +6151,7 @@
     },
     "/v1/carriers/{carrier_id}/consent/{channel}": {
       "delete": {
-        "description": "Append a revoke to the consent ledger, then refresh the carrier's consent cache.\n\nArgs:\n    carrier_id: Carrier id.\n    channel: Channel to revoke.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The carrier with its refreshed consent.\n\nRaises:\n    RepoError: 404 unknown carrier.",
+        "description": "Append a revoke to the consent ledger, then refresh the carrier's consent cache (immediate for any\ndispatcher or owner: a STOP never waits for an approval).\n\nArgs:\n    carrier_id: Carrier id.\n    channel: Channel to revoke.\n    request: Incoming request.\n    principal: Dispatcher or owner.\n\nReturns:\n    The carrier with its refreshed consent.\n\nRaises:\n    RepoError: 404 unknown carrier.",
         "operationId": "carrier_consent_revoke",
         "parameters": [
           {
@@ -7671,7 +7696,7 @@
     },
     "/v1/invitations/accept": {
       "post": {
-        "description": "Join the firm that issued an invitation; the signed-in user's email or phone must match it.\n\nArgs:\n    body: Invitation token.\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    The firm and role; switch to it with /v1/auth/switch-firm.\n\nRaises:\n    ApiError: 404 unknown, used or expired; 403 invitation_mismatch; 409 already_member; 429.",
+        "description": "Join the firm that issued an invitation; the signed-in user's email or phone must match it.\n\nArgs:\n    body: Invitation token.\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    The firm and role; switch to it with /v1/auth/switch-firm.\n\nRaises:\n    ApiError: 404 unknown, used or expired; 403 invitation_mismatch or email_not_verified; 409 already_member;\n        429.",
         "operationId": "invitations_accept",
         "requestBody": {
           "content": {
@@ -7773,7 +7798,7 @@
         ]
       },
       "patch": {
-        "description": "Change the caller's name or email (emails are unique across users).\n\nArgs:\n    body: Fields to change.\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    The updated user.\n\nRaises:\n    ApiError: 409 email_taken.",
+        "description": "Change the caller's name or email (emails are unique across users). A new email is unverified until a\nsign-in link sent to it is used, and only a verified email can accept an invitation.\n\nArgs:\n    body: Fields to change.\n    request: Incoming request.\n    principal: Signed-in user.\n\nReturns:\n    The updated user.\n\nRaises:\n    ApiError: 409 email_taken.",
         "operationId": "me_update",
         "requestBody": {
           "content": {

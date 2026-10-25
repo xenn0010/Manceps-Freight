@@ -43,9 +43,10 @@ def test_readyz_ok_and_creates_platform_indexes(client: TestClient, mongo_client
     """Readiness pings the database; startup created the platform indexes."""
     response = client.get("/readyz")
     assert (response.status_code, response.json()) == (200, {"status": "ok"})
-    assert "tenant_id_1_key_1_route_1" in mongo_client["platform"]["idempotency_keys"].index_information()
+    assert "tenant_id_1_user_id_1_key_1_route_1" in mongo_client["platform"]["idempotency_keys"].index_information()
 
 
+@pytest.mark.mongomock_only
 def test_readyz_503_when_database_down(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     """A database outage is 503 database_unavailable in the envelope."""
     monkeypatch.setattr(MockDatabase, "command", _fail)
@@ -54,6 +55,7 @@ def test_readyz_503_when_database_down(client: TestClient, monkeypatch: pytest.M
     assert response.json()["error"]["code"] == "database_unavailable"
 
 
+@pytest.mark.mongomock_only
 def test_startup_survives_database_down_then_recovers(app: FastAPI, monkeypatch: pytest.MonkeyPatch) -> None:
     """If indexes cannot be created at startup the app is not ready; readiness retries them later."""
     monkeypatch.setattr(MockCollection, "create_index", _fail)

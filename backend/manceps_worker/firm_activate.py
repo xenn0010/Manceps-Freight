@@ -62,7 +62,7 @@ def _validated_tenant(signup: Doc) -> str:
 
 
 def _upsert_firm(db: MongoDb, tenant_id: str, signup: Doc, owner_id: str, clock: Clock) -> bool:
-    """Create the firm row if it does not exist.
+    """Create the firm row if it does not exist; an existing row must be this signup's own.
 
     Args:
         db: Platform database.
@@ -73,6 +73,10 @@ def _upsert_firm(db: MongoDb, tenant_id: str, signup: Doc, owner_id: str, clock:
 
     Returns:
         True when the firm row was created by this call.
+
+    Raises:
+        ValueError: If a firm row with this id exists but was created for another signup (or by other means), so
+            the signup's user must never be made its owner.
     """
     before = db[accounts.FIRMS].find_one_and_update(
         {"_id": tenant_id},
@@ -81,6 +85,8 @@ def _upsert_firm(db: MongoDb, tenant_id: str, signup: Doc, owner_id: str, clock:
                           "created_at": clock(), "signup_id": signup["_id"]}},
         upsert=True, return_document=ReturnDocument.BEFORE,
     )
+    if before is not None and before.get("signup_id") != signup["_id"]:
+        raise ValueError(f"firm {tenant_id!r} belongs to another signup; refusing to grant ownership")
     return before is None
 
 
@@ -97,7 +103,7 @@ def firm_activate(db: MongoDb, tenant_db: TenantDb, signup: Doc, clock: Clock = 
         True when this call created the firm, False when it already existed.
 
     Raises:
-        ValueError: If the signup is not ready or has no valid tenant id.
+        ValueError: If the signup is not ready, has no valid tenant id, or names a firm another signup owns.
         pymongo.errors.PyMongoError: On database failure (the runner retries on its next poll).
     """
     tenant_id = _validated_tenant(signup)

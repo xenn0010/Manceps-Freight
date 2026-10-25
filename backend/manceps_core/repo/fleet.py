@@ -15,7 +15,7 @@ from typing import Any
 from bson import ObjectId
 
 from ..mongo import Doc, MongoDb
-from . import fields
+from . import consent, fields
 from .carriers import CARRIERS, DELETED_PHONE_PREFIX, EQUIPMENT_TYPES
 from .errors import Invalid, NotFound
 from .store import WriteContext, get_by_id, insert, list_live, soft_delete, update
@@ -241,7 +241,7 @@ def get_record(db: MongoDb, kind: str, record_id: Any) -> Doc:
 
 
 def update_record(db: MongoDb, ctx: WriteContext, kind: str, record_id: Any, changes: Mapping[str, Any]) -> Doc:
-    """Change a driver or truck (None removes an optional field).
+    """Change a driver or truck (None removes an optional field); a driver's new number starts without consent.
 
     Args:
         db: Firm database.
@@ -263,7 +263,13 @@ def update_record(db: MongoDb, ctx: WriteContext, kind: str, record_id: Any, cha
     spec = SPECS[kind]
     current = get_record(db, kind, record_id)
     clean = _validate(spec.rules(db), changes, spec.required)
-    return update(db, ctx, spec.collection, kind, current, clean, spec.duplicate)
+    if kind == "driver":
+        clean = consent.phone_changes(current, clean)
+    after = update(db, ctx, spec.collection, kind, current, clean, spec.duplicate)
+    if "consent" not in clean:
+        return after
+    consent.revoke_for_phone_change(db, ctx, "driver", current)
+    return get_record(db, kind, current["_id"])
 
 
 def delete_record(db: MongoDb, ctx: WriteContext, kind: str, record_id: Any) -> Doc:

@@ -6,7 +6,7 @@ import inspect
 from typing import Any, get_type_hints
 
 import pytest
-from conftest import PLUGIN_DIR, TENANT_A, TENANT_B, load_module, make_principal
+from conftest import PLUGIN_DIR, TENANT_A, TENANT_B, IsolatedMongoClient, load_module, make_principal
 
 from manceps_core.mongo import MongoClientT, MongoDb
 from manceps_core.tenancy import TENANT_PATTERN, PlatformRepo, Principal, TenantDb, TenantError
@@ -31,7 +31,8 @@ def test_tenantdb_has_no_string_tenant_api(mongo_client: MongoClientT) -> None:
 def test_tenantdb_maps_principal_to_firm_database(mongo_client: MongoClientT) -> None:
     """The firm database name is firm_ + id with dashes replaced."""
     db = TenantDb(mongo_client).for_principal(make_principal(TENANT_A))
-    assert db.name == "firm_apex_freight"
+    prefix = mongo_client.prefix if isinstance(mongo_client, IsolatedMongoClient) else ""
+    assert db.name == prefix + "firm_apex_freight"
 
 
 def test_tenantdb_refuses_principal_without_firm(mongo_client: MongoClientT) -> None:

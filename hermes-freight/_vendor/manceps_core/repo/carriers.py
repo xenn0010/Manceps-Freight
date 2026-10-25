@@ -13,13 +13,14 @@ real number is free to be added again as a new carrier.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Mapping
 from typing import Any
 
 from bson import ObjectId
 
 from ..mongo import Doc, MongoDb
-from . import fields
+from . import consent, fields
 from .errors import Conflict, Invalid
 from .store import WriteContext, get_by_id, insert, list_live, soft_delete, update
 
@@ -112,8 +113,8 @@ def _number(field: str, value: Any) -> float:
     Raises:
         Invalid: If it is not a number.
     """
-    if isinstance(value, bool) or not isinstance(value, int | float) or value != value:
-        raise Invalid(field, f"{field} must be a number")
+    if isinstance(value, bool) or not isinstance(value, int | float) or not math.isfinite(value):
+        raise Invalid(field, f"{field} must be a finite number")
     return float(value)
 
 
@@ -292,6 +293,9 @@ def update_carrier(db: MongoDb, ctx: WriteContext, carrier_id: Any, changes: Map
                    allow_sensitive: bool) -> Doc:
     """Change a carrier's fields (None removes an optional field).
 
+    A new phone number drops the consent cache in the same write and revokes the old number's consent in the
+    ledger: consent belongs to a number, never to the document.
+
     Args:
         db: Firm database.
         ctx: Writer.
@@ -312,7 +316,12 @@ def update_carrier(db: MongoDb, ctx: WriteContext, carrier_id: Any, changes: Map
     check_terms(changes, allow_sensitive)
     clean = validate(changes)
     current = get_carrier(db, carrier_id)
-    return update(db, ctx, CARRIERS, REF_TYPE, current, clean, DUPLICATE_PHONE)
+    clean = consent.phone_changes(current, clean)
+    after = update(db, ctx, CARRIERS, REF_TYPE, current, clean, DUPLICATE_PHONE)
+    if "consent" not in clean:
+        return after
+    consent.revoke_for_phone_change(db, ctx, "carrier", current)
+    return get_carrier(db, current["_id"])
 
 
 def has_open_loads(db: MongoDb, carrier_oid: ObjectId) -> bool:

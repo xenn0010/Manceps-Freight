@@ -336,3 +336,16 @@ def test_reference_search(client: TestClient, mongo_client: MongoClientT, clock:
         response = client.get(f"/v1/reference/brokers{bad}", headers=firms.headers("viewer"))
         assert response.status_code == 422, bad
     assert client.get("/v1/reference/brokers?mc=1").status_code == 401
+
+
+def test_f2_route_refuses_a_stored_foreign_dot(client: TestClient, mongo_client: MongoClientT, clock: FakeClock,
+                                               transport: FakeTransport) -> None:
+    firms = seed_firms(client, mongo_client, clock)
+    _load_reference(_reference(mongo_client))
+    created(client, firms.headers("dispatcher"), "/v1/brokers", {"mc_number": "999999"})
+    patched = client.patch("/v1/brokers/999999", json={"dot_number": "777"}, headers=firms.headers("dispatcher"))
+    assert patched.status_code == 200
+    shell = {"content": [{"carrier": {"dotNumber": 555, "allowedToOperate": "Y", "legalName": "SHELL"}}]}
+    transport.routes = {"docket-number/999999": shell, "/authority": GOOD_AUTHORITY, "carriers/": GOOD_CARRIER}
+    result = client.post("/v1/brokers/999999/check", json={}, headers=firms.headers("dispatcher")).json()
+    assert result["verdict"] == "do_not_book" and _status(result, "mc_dot_match") == "fail"

@@ -137,3 +137,19 @@ def test_magic_link_for_disabled_user_is_401(email_client: TestClient, mongo_cli
     platform(mongo_client)["users"].update_one({"email": EMAIL}, {"$set": {"status": "disabled"}})
     response = email_client.post("/v1/auth/magic-link/verify", json={"token": _token_from(mailer)})
     assert response.status_code == 401
+
+
+def test_f8_magic_link_marks_the_email_verified(email_client: TestClient, mongo_client: MongoClientT,
+                                                clock: FakeClock, mailer: FakeMailer) -> None:
+    _seed_email_owner(mongo_client, clock)
+    users = platform(mongo_client)["users"]
+    email_client.post("/v1/auth/magic-link/start", json={"email": EMAIL})
+    users.update_one({"phone": PHONE_OWNER_A}, {"$set": {"email": "changed@apex.test"}})
+    assert email_client.post("/v1/auth/magic-link/verify", json={"token": _token_from(mailer)}).status_code == 200
+    unverified = users.find_one({"phone": PHONE_OWNER_A})
+    assert unverified is not None and unverified.get("email_verified_at") is None
+    users.update_one({"phone": PHONE_OWNER_A}, {"$set": {"email": EMAIL}})
+    email_client.post("/v1/auth/magic-link/start", json={"email": EMAIL})
+    assert email_client.post("/v1/auth/magic-link/verify", json={"token": _token_from(mailer)}).status_code == 200
+    verified = users.find_one({"phone": PHONE_OWNER_A})
+    assert verified is not None and verified["email_verified_at"] == clock()

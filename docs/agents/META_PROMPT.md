@@ -74,8 +74,8 @@ back office. The backend must be complete enough that the only remaining work is
    no secrets in logs or responses.
 7. A short end-to-end test drives the main flow through the HTTP API against mongomock and fake
    integrations.
-8. **Real database.** The same suite also passes against a real MongoDB (7.x) when
-   `MONGODB_TEST_URI` is set (`uv run pytest -q -m "not mongomock_only"`). Tests that rely on
+8. **Real database.** The same suite also passes against a real MongoDB (8.0, single-node replica set; locally it runs in the Lima VM at
+   `mongodb://127.0.0.1:27017/?directConnection=true`) when `MONGODB_TEST_URI` is set (`uv run pytest -q -m "not mongomock_only"`). Tests that rely on
    real behavior mongomock lacks (atomic `find_one_and_update` under concurrency, TTL indexes,
    unique index conflicts, 2dsphere, text search) are marked `realdb` and run only there. CI
    runs this gate on every push with a MongoDB service container.

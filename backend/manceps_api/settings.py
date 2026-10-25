@@ -15,6 +15,9 @@ DEFAULT_IMPORT_MAX_BYTES = 10 * 1024 * 1024
 DEFAULT_IMPORT_MAX_ROWS = 20_000
 DEFAULT_IMPORT_UNDO_HOURS = 24
 DEFAULT_API_PORT = 8000
+DEFAULT_TRUSTED_PROXY_HOPS = 1
+MAX_TRUSTED_PROXY_HOPS = 10
+DEFAULT_MAX_BODY_BYTES = 1024 * 1024
 MAX_TCP_PORT = 65_535
 WILDCARD_ORIGIN = "*"
 
@@ -47,6 +50,8 @@ class Settings(BaseSettings):
     cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=list[str])
     cookie_domain: str | None = None
     trust_proxy: bool = False
+    trusted_proxy_hops: int = Field(default=DEFAULT_TRUSTED_PROXY_HOPS, ge=1, le=MAX_TRUSTED_PROXY_HOPS)
+    max_body_bytes: int = Field(default=DEFAULT_MAX_BODY_BYTES, gt=0)
     twilio_account_sid: str | None = None
     twilio_auth_token: SecretStr | None = None
     twilio_verify_service_sid: str | None = None

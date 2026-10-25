@@ -38,6 +38,44 @@ jobs:
       - name: Vendored core is current
         run: uv run python scripts/vendor_core.py --check
 
+  backend-realdb:
+    name: backend tests on real MongoDB 8.0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      MONGODB_TEST_URI: mongodb://127.0.0.1:27017/?directConnection=true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Start MongoDB 8.0 single-node replica set
+        run: |
+          docker run -d --name mongo -p 27017:27017 --tmpfs /data/db mongo:8.0 --replSet rs0 --bind_ip_all
+          for attempt in $(seq 1 60); do
+            if docker exec mongo mongosh --quiet --eval 'db.adminCommand({ping: 1}).ok' >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          docker exec mongo mongosh --quiet --eval 'rs.initiate({_id: "rs0", members: [{_id: 0, host: "127.0.0.1:27017"}]})'
+          for attempt in $(seq 1 60); do
+            if [ "$(docker exec mongo mongosh --quiet --eval 'db.hello().isWritablePrimary')" = "true" ]; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "replica set did not elect a primary" >&2
+          docker logs mongo >&2
+          exit 1
+      - name: Install
+        run: uv sync --frozen
+      - name: Tests (real database, realdb tests included, mongomock-only tests excluded)
+        run: uv run pytest -q -m "not mongomock_only"
+
   plugin:
     name: hermes-freight plugin tests
     runs-on: ubuntu-24.04

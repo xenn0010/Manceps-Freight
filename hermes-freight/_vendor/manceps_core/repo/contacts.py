@@ -6,6 +6,7 @@ Facilities store their location as GeoJSON `geo` for the 2dsphere index and refe
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Callable, Mapping
 from typing import Any, cast
@@ -22,7 +23,7 @@ FACILITIES = "facilities"
 CONTACT_KINDS = ("broker_contact", "shipper", "receiver", "facility", "other")
 CONTACT_SOURCES = ("manual", "import", "vcard", "google", "agent")
 DEFAULT_SOURCE = "manual"
-ZIP_PATTERN = re.compile(r"^\d{5}(-\d{4})?$")
+ZIP_PATTERN = re.compile(r"^[0-9]{5}(-[0-9]{4})?$")
 MAX_LATITUDE = 90.0
 MAX_LONGITUDE = 180.0
 HOURS_MAX = 500
@@ -50,7 +51,7 @@ def _zip(field: str, value: Any) -> str:
 
 
 def _coordinate(field: str, value: Any) -> float:
-    """Read one numeric coordinate.
+    """Read one finite numeric coordinate.
 
     Args:
         field: Field name.
@@ -60,9 +61,9 @@ def _coordinate(field: str, value: Any) -> float:
         The coordinate.
 
     Raises:
-        Invalid: If it is not a number.
+        Invalid: If it is not a finite number.
     """
-    if isinstance(value, bool) or not isinstance(value, int | float):
+    if isinstance(value, bool) or not isinstance(value, int | float) or not math.isfinite(value):
         raise Invalid(field, f"{field} needs numeric lat and lng")
     return float(value)
 

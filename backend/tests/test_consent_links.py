@@ -37,8 +37,8 @@ def _grant(client: TestClient, headers: dict[str, str], carrier_id: str, channel
 def test_consent_ledger_and_cache(client: TestClient, mongo_client: MongoClientT, clock: FakeClock) -> None:
     firms = seed_firms(client, mongo_client, clock)
     carrier = created(client, firms.headers("dispatcher"), "/v1/carriers", CARRIER)
-    _grant(client, firms.headers("dispatcher"), carrier["id"], "sms")
-    granted = _grant(client, firms.headers("dispatcher"), carrier["id"], "voice")
+    _grant(client, firms.headers("owner"), carrier["id"], "sms")
+    granted = _grant(client, firms.headers("owner"), carrier["id"], "voice")
     assert granted["consent"]["sms"] is True and granted["consent"]["voice"] is True
     assert granted["consent"]["whatsapp"] is False and granted["consent"]["method"] == METHOD
     revoked = client.delete(f"/v1/carriers/{carrier['id']}/consent/sms", headers=firms.headers("dispatcher"))
@@ -66,7 +66,7 @@ def test_consent_requires_method(client: TestClient, mongo_client: MongoClientT,
     carrier = created(client, firms.headers("dispatcher"), "/v1/carriers", CARRIER)
     path = f"/v1/carriers/{carrier['id']}/consent"
     for body in ({"channel": "sms"}, {"channel": "sms", "method": "   "}, {"channel": "fax", "method": METHOD}):
-        response = client.post(path, json=body, headers=firms.headers("dispatcher"))
+        response = client.post(path, json=body, headers=firms.headers("owner"))
         assert response.status_code == 422, body
         assert error_code(response) == "validation_error"
     assert client.delete(f"{path}/fax", headers=firms.headers("dispatcher")).status_code == 422

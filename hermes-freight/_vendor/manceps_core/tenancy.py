@@ -322,6 +322,24 @@ class PlatformRepo:
         result = self._collection(collection).update_one(self._filter(query), dict(update), upsert=upsert)
         return result.matched_count
 
+    def update_many(self, collection: str, query: Mapping[str, Any], update: Mapping[str, Any]) -> int:
+        """Update every matching document of this tenant.
+
+        Args:
+            collection: Collection name.
+            query: Filter.
+            update: Update operators.
+
+        Returns:
+            Number of documents modified.
+
+        Raises:
+            TenantError: If the filter or update crosses tenants.
+            ValueError: If the collection is not tenant-scoped.
+        """
+        self._check_update(update)
+        return self._collection(collection).update_many(self._filter(query), dict(update)).modified_count
+
     def delete_one(self, collection: str, query: Mapping[str, Any]) -> int:
         """Delete one document of this tenant.
 

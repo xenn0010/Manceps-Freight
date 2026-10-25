@@ -1,15 +1,24 @@
-"""Shared fixtures: in-memory MongoDB, a controllable clock, settings, and the app under test."""
+"""Shared fixtures: MongoDB (in-memory, or a real server when MONGODB_TEST_URI is set), a controllable clock,
+settings, and the app under test.
+
+Real-database mode (META gate 8): with MONGODB_TEST_URI set, every test gets a client whose database names carry a
+unique per-test prefix, and those databases are dropped after the test. Tests marked `mongomock_only` (they patch
+mongomock internals) are deselected there; tests marked `realdb` (concurrency, TTL and unique-index behavior,
+query plans) run only there.
+"""
 
 from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import sys
+import uuid
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import ModuleType
-from typing import cast
+from typing import Any, cast
 
 import mongomock
 import pytest
@@ -18,13 +27,15 @@ from cryptography.hazmat.primitives.serialization import Encoding, NoEncryption,
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
+from pymongo import MongoClient
+from pymongo.database import Database
 
 from manceps_api.app import create_app
 from manceps_api.integrations.configured import Integrations
 from manceps_api.integrations.twilio_verify import VerifyError
 from manceps_api.settings import Settings
 from manceps_core.indexes import ensure_platform_indexes
-from manceps_core.mongo import MongoClientT, MongoDb
+from manceps_core.mongo import Doc, MongoClientT, MongoDb
 from manceps_core.tenancy import Principal, PrincipalKind, Role
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +48,11 @@ TENANT_A = "apex-freight"
 TENANT_B = "bolt-logistics"
 TEST_KID = "k-test-1"
 GOOD_CODE = "123456"
+TEST_URI_VARIABLE = "MONGODB_TEST_URI"
+MONGODB_TEST_URI = os.environ.get(TEST_URI_VARIABLE, "").strip()
+REAL_DB = bool(MONGODB_TEST_URI)
+REAL_DB_TIMEOUT_MS = 5000
+PREFIX_HEX_CHARS = 10
 
 
 def ed25519_pem_pair() -> tuple[str, str]:
@@ -53,6 +69,67 @@ def ed25519_pem_pair() -> tuple[str, str]:
 
 TEST_PRIVATE_PEM, TEST_PUBLIC_PEM = ed25519_pem_pair()
 TEST_KEYS_JSON = json.dumps({TEST_KID: {"private_pem": TEST_PRIVATE_PEM, "public_pem": TEST_PUBLIC_PEM}})
+
+
+class IsolatedMongoClient(MongoClient[Doc]):
+    """A real MongoDB client whose database names carry a per-test prefix, so tests never see each other's data."""
+
+    def __init__(self, uri: str, prefix: str, **kwargs: Any) -> None:
+        """Connect.
+
+        Args:
+            uri: Server URI.
+            prefix: Prepended to every database name, e.g. "t1a2b3c4d5e_".
+            **kwargs: Extra client options (event listeners).
+        """
+        super().__init__(uri, tz_aware=True, serverSelectionTimeoutMS=REAL_DB_TIMEOUT_MS, **kwargs)
+        self.prefix = prefix
+
+    def __getitem__(self, name: str) -> Database[Doc]:
+        """Return the prefixed database.
+
+        Args:
+            name: Database name the code under test asked for.
+
+        Returns:
+            The database named prefix + name.
+        """
+        return super().__getitem__(self.prefix + name)
+
+
+def new_prefix() -> str:
+    """Make a unique database-name prefix for one test.
+
+    Returns:
+        Prefix like "t1a2b3c4d5e_".
+    """
+    return f"t{uuid.uuid4().hex[:PREFIX_HEX_CHARS]}_"
+
+
+def drop_prefixed(prefix: str) -> None:
+    """Drop every database a test created on the real server.
+
+    Args:
+        prefix: The test's database-name prefix.
+    """
+    with MongoClient[Doc](MONGODB_TEST_URI, serverSelectionTimeoutMS=REAL_DB_TIMEOUT_MS) as plain:
+        for name in plain.list_database_names():
+            if name.startswith(prefix):
+                plain.drop_database(name)
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Deselect tests that cannot run on the current database backend.
+
+    Args:
+        config: Pytest config.
+        items: Collected tests (edited in place).
+    """
+    unwanted = "mongomock_only" if REAL_DB else "realdb"
+    dropped = [item for item in items if item.get_closest_marker(unwanted) is not None]
+    if dropped:
+        config.hook.pytest_deselected(items=dropped)
+        items[:] = [item for item in items if item.get_closest_marker(unwanted) is None]
 
 
 class FakeVerifier:
@@ -212,13 +289,22 @@ def clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture
-def mongo_client() -> MongoClientT:
-    """Return a fresh in-memory MongoDB client.
+def mongo_client() -> Iterator[MongoClientT]:
+    """Return a fresh, empty MongoDB: in memory, or isolated databases on the real server in real-database mode.
 
-    Returns:
-        The mongomock client.
+    Yields:
+        The client.
     """
-    return cast(MongoClientT, mongomock.MongoClient(tz_aware=True))
+    if not REAL_DB:
+        yield cast(MongoClientT, mongomock.MongoClient(tz_aware=True))
+        return
+    prefix = new_prefix()
+    client = IsolatedMongoClient(MONGODB_TEST_URI, prefix)
+    try:
+        yield client
+    finally:
+        client.close()
+        drop_prefixed(prefix)
 
 
 @pytest.fixture

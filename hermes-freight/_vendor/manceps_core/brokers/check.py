@@ -1,7 +1,8 @@
 """Broker vetting: FMCSA operating status and authority, bond, domain age and email DNS (ported from hermes-freight).
 
-Every check fails closed: a lookup error or an unexpected response is `unknown`, never `pass`. The verdict is
-`looks_ok` only when operating status, broker authority and the bond all pass and nothing fails or warns.
+Every check fails closed: a lookup error or an unexpected response is `unknown`, never `pass`. The MC and DOT must be
+proven to belong to one FMCSA record (`mc_dot_match`). The verdict is `looks_ok` only when every check that ran
+passed and operating status, broker authority, bond and identity are all among them.
 HTTP and DNS go through an injected `CheckTransport`, so this module stays pure and tests use a fake. Check
 details never contain the FMCSA key or request URLs.
 """
@@ -26,9 +27,11 @@ FREE_EMAIL_DOMAINS = frozenset({
     "proton.me", "protonmail.com", "gmx.com", "mail.com", "yandex.com",
 })
 CRITICAL = ("fmcsa_operating", "broker_authority", "bond")
+IDENTITY = "mc_dot_match"
+REQUIRED_FOR_OK = (*CRITICAL, IDENTITY)
 PASS, FAIL, WARN, UNKNOWN = "pass", "fail", "warn", "unknown"
 EMAIL_DOMAIN = re.compile(r"[^@\s]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})")
-NON_DIGITS = re.compile(r"\D")
+NON_DIGITS = re.compile(r"[^0-9]")  # ASCII only: \D would keep Arabic-Indic and other Unicode digits
 PARSE_ERRORS = (ValueError, TypeError, KeyError, AttributeError, StopIteration)
 
 
@@ -141,13 +144,12 @@ def _payload(transport: CheckTransport, url: str) -> dict[str, Any]:
     return payload
 
 
-def _fmcsa_carrier(transport: CheckTransport, dot: str, mc: str, key: str) -> dict[str, Any] | None:
-    """Look up the FMCSA carrier record by DOT, falling back to the MC docket.
+def _dot_record(transport: CheckTransport, dot: str, key: str) -> dict[str, Any] | None:
+    """Look up the FMCSA carrier record by USDOT number.
 
     Args:
         transport: Lookup transport.
-        dot: USDOT digits, may be empty.
-        mc: MC digits, may be empty.
+        dot: USDOT digits.
         key: QCMobile web key.
 
     Returns:
@@ -158,12 +160,76 @@ def _fmcsa_carrier(transport: CheckTransport, dot: str, mc: str, key: str) -> di
         ValueError: On malformed responses.
     """
     query = urllib.parse.urlencode({"webKey": key})
-    if dot:
-        content = _as_dict(_payload(transport, f"{FMCSA_BASE}/{dot}?{query}").get("content"))
-        return _as_dict(content.get("carrier")) if content is not None else None
+    content = _as_dict(_payload(transport, f"{FMCSA_BASE}/{dot}?{query}").get("content"))
+    return _as_dict(content.get("carrier")) if content is not None else None
+
+
+def _docket_record(transport: CheckTransport, mc: str, key: str) -> dict[str, Any] | None:
+    """Look up the FMCSA carrier record that owns an MC docket.
+
+    Args:
+        transport: Lookup transport.
+        mc: MC digits.
+        key: QCMobile web key.
+
+    Returns:
+        The carrier record, or None when FMCSA has no match.
+
+    Raises:
+        LookupFailed: On transport failure.
+        ValueError: On malformed responses.
+    """
+    query = urllib.parse.urlencode({"webKey": key})
     records = _as_list(_payload(transport, f"{FMCSA_BASE}/docket-number/{mc}?{query}").get("content"))
     first = _as_dict(records[0]) if records else None
     return _as_dict(first.get("carrier")) if first is not None else None
+
+
+def _same_number(left: str, right: str) -> bool:
+    """Compare two FMCSA numbers ignoring leading zeros.
+
+    Args:
+        left: Digits.
+        right: Digits.
+
+    Returns:
+        True when they are the same number.
+    """
+    return left.lstrip("0") == right.lstrip("0")
+
+
+def _identity(transport: CheckTransport, key: str, mc: str, dot: str) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    """Resolve the FMCSA record and prove the MC and DOT name the same entity.
+
+    With an MC, the record is the MC docket's owner, and any DOT supplied or stored must be that record's DOT
+    (a fake MC presented with a real broker's DOT is the classic double-brokering scam). A DOT alone cannot prove
+    who is behind an MC, so it yields `unknown` and the verdict can never be `looks_ok`.
+
+    Args:
+        transport: Lookup transport.
+        key: QCMobile web key.
+        mc: MC digits, may be empty.
+        dot: USDOT digits, may be empty.
+
+    Returns:
+        (carrier record or None, the mc_dot_match check).
+
+    Raises:
+        LookupFailed: On transport failure.
+        ValueError: On malformed responses.
+    """
+    if not mc:
+        return _dot_record(transport, dot, key), _check(IDENTITY, UNKNOWN, "no MC number to confirm who holds this DOT")
+    carrier = _docket_record(transport, mc, key)
+    if carrier is None:
+        return None, _check(IDENTITY, FAIL, "no FMCSA record for this MC")
+    record_dot = NON_DIGITS.sub("", str(carrier.get("dotNumber") or ""))
+    if not record_dot:
+        return carrier, _check(IDENTITY, UNKNOWN, "FMCSA reported no DOT number for this MC")
+    if dot and not _same_number(dot, record_dot):
+        return carrier, _check(IDENTITY, FAIL, "MC and DOT belong to different FMCSA entities", mc_dot=record_dot,
+                               given_dot=dot)
+    return carrier, _check(IDENTITY, PASS, "MC and DOT belong to the same FMCSA record", dot_number=record_dot)
 
 
 def _authority_check(payload: dict[str, Any]) -> dict[str, Any]:
@@ -186,7 +252,7 @@ def _authority_check(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def _fmcsa_checks(transport: CheckTransport, key: str, dot: str, mc: str) -> tuple[list[dict[str, Any]], str]:
-    """Run the FMCSA operating-status and broker-authority checks.
+    """Run the identity, FMCSA operating-status and broker-authority checks.
 
     Args:
         transport: Lookup transport.
@@ -195,24 +261,30 @@ def _fmcsa_checks(transport: CheckTransport, key: str, dot: str, mc: str) -> tup
         mc: MC digits, may be empty.
 
     Returns:
-        Check results and the resolved DOT number ("" if unknown).
+        Check results and the verified DOT number: the MC docket's DOT, the given DOT when there is no MC, or ""
+        when it could not be verified.
     """
     if not key:
-        return [_check(name, UNKNOWN, "FMCSA web key not configured") for name in CRITICAL[:2]], dot
+        return [_check(name, UNKNOWN, "FMCSA web key not configured") for name in (*CRITICAL[:2], IDENTITY)], ""
     try:
-        carrier = _fmcsa_carrier(transport, dot, mc, key)
+        carrier, identity = _identity(transport, key, mc, dot)
         if carrier is None:
-            return [_check(name, FAIL, "no FMCSA record for this MC/DOT") for name in CRITICAL[:2]], dot
-        dot = NON_DIGITS.sub("", str(carrier.get("dotNumber") or dot)) or dot
+            return [*(_check(name, FAIL, "no FMCSA record for this MC/DOT") for name in CRITICAL[:2]), identity], ""
+        if identity["status"] == FAIL:
+            return [*(_check(name, FAIL, str(identity["detail"])) for name in CRITICAL[:2]), identity], ""
+        verified = NON_DIGITS.sub("", str(carrier.get("dotNumber") or "")) or (dot if not mc else "")
+        if not verified:
+            return [*(_check(name, UNKNOWN, str(identity["detail"])) for name in CRITICAL[:2]), identity], ""
         allowed = carrier.get("allowedToOperate")
         operating = {"Y": PASS, "N": FAIL}.get(str(allowed), UNKNOWN)
         results = [_check("fmcsa_operating", operating, f"allowedToOperate={allowed!r}",
-                          legal_name=carrier.get("legalName"), dot_number=dot)]
+                          legal_name=carrier.get("legalName"), dot_number=verified)]
         query = urllib.parse.urlencode({"webKey": key})
-        results.append(_authority_check(_payload(transport, f"{FMCSA_BASE}/{dot}/authority?{query}")))
-        return results, dot
+        results.append(_authority_check(_payload(transport, f"{FMCSA_BASE}/{verified}/authority?{query}")))
+        return [*results, identity], verified
     except (LookupFailed, *PARSE_ERRORS) as exc:
-        return [_check(name, UNKNOWN, f"FMCSA lookup failed: {_reason(exc)}") for name in CRITICAL[:2]], dot
+        reason = f"FMCSA lookup failed: {_reason(exc)}"
+        return [_check(name, UNKNOWN, reason) for name in (*CRITICAL[:2], IDENTITY)], ""
 
 
 def _domain_age_check(transport: CheckTransport, domain: str, now: datetime) -> dict[str, Any]:
@@ -288,12 +360,14 @@ def verdict(checks: list[dict[str, Any]]) -> str:
         checks: Check results.
 
     Returns:
-        "do_not_book" on any failure, "looks_ok" when every critical check passes and nothing warns, else "review".
+        "do_not_book" on any failure; "looks_ok" only when every required check is present and every check that ran
+        passed (a single `unknown` or `warn` caps it at "review"); else "review".
     """
-    statuses = {check["check"]: check["status"] for check in checks}
-    if FAIL in statuses.values():
+    statuses = [str(check["status"]) for check in checks]
+    if FAIL in statuses:
         return "do_not_book"
-    if all(statuses.get(name) == PASS for name in CRITICAL) and WARN not in statuses.values():
+    present = {check["check"] for check in checks}
+    if all(status == PASS for status in statuses) and present.issuperset(REQUIRED_FOR_OK):
         return "looks_ok"
     return "review"
 
@@ -320,7 +394,8 @@ def run_check(transport: CheckTransport, fmcsa_key: str, mc: str, dot: str, emai
     mc, dot = NON_DIGITS.sub("", mc), NON_DIGITS.sub("", dot)
     if not mc and not dot:
         raise ValueError("give mc_number or dot_number")
-    checks, dot = _fmcsa_checks(transport, fmcsa_key, dot, mc)
+    checks, verified_dot = _fmcsa_checks(transport, fmcsa_key, dot, mc)
     checks += _email_checks(transport, email, now)
-    checks.append(bond_status(reference_db, mc, dot, now))
-    return {"mc_number": mc or None, "dot_number": dot or None, "verdict": verdict(checks), "checks": checks}
+    checks.append(bond_status(reference_db, mc, verified_dot if mc else dot, now))
+    return {"mc_number": mc or None, "dot_number": verified_dot or None, "verdict": verdict(checks),
+            "checks": checks}

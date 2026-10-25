@@ -25,7 +25,7 @@ SHORT_TEXT_MAX = 500
 MAX_LIST_ITEMS = 50
 MAX_CONTACT_POINTS = 10
 QUERY_MAX = 100
-NON_DIGITS = re.compile(r"\D")
+NON_DIGITS = re.compile(r"[^0-9]")  # ASCII only: \D would keep Arabic-Indic and other Unicode digits
 STATE_PATTERN = re.compile(r"^[A-Z]{2}$")
 
 

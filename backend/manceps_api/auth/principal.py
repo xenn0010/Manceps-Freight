@@ -23,7 +23,7 @@ from manceps_core.tenancy import Principal, Role
 from ..context import AppContext, get_context
 from ..errors import ApiError
 from ..idempotency import IdempotencyGuard, idempotency_dependency
-from .scoped import SCOPED_LINKS, link_is_live
+from .scoped import SCOPED_LINKS, link_is_live, portal_allowed
 from .sessions import find_session
 from .tokens import AUD_FIRM, AUD_PORTAL, Audience, TokenClaims, TokenError, TokenService
 
@@ -205,7 +205,7 @@ def require_role(minimum: FirmRole) -> Callable[..., Coroutine[Any, Any, Princip
 async def portal_principal(
     request: Request, credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(portal_bearer)],
 ) -> Principal:
-    """Authenticate a portal token (aud=portal) against its live scoped link.
+    """Authenticate a portal token (aud=portal) against its live scoped link, active firm and live subject.
 
     Args:
         request: Incoming request.
@@ -221,7 +221,8 @@ async def portal_principal(
     claims = _verify(context, credentials, AUD_PORTAL)
     link = context.platform_db[SCOPED_LINKS].find_one({"_id": claims.sid})
     if (not link_is_live(link, context.clock()) or link is None or claims.tid is None
-            or link.get("tenant_id") != claims.tid or link.get("subject", {}).get("id") != claims.sub):
+            or link.get("tenant_id") != claims.tid or link.get("subject", {}).get("id") != claims.sub
+            or not portal_allowed(context.platform_db, context.tenant_db, link)):
         raise unauthorized("link_revoked", "this link is no longer valid")
     structlog.contextvars.bind_contextvars(tenant_id=claims.tid, user_id=claims.sub)
     return Principal(user_id=claims.sub, tenant_id=claims.tid, role=claims.role, session_id=claims.sid,

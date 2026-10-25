@@ -6,8 +6,8 @@ import re
 
 US_COUNTRY_CODE = "1"
 US_NATIONAL_DIGITS = 10
-NON_DIGITS = re.compile(r"\D")
-E164_US = re.compile(r"^\+1\d{10}$")
+NON_DIGITS = re.compile(r"[^0-9]")  # ASCII only: \D would keep Arabic-Indic and other Unicode digits
+E164_US = re.compile(r"^\+1[0-9]{10}$")
 
 
 def normalize_phone(raw: str) -> str:

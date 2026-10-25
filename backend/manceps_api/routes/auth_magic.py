@@ -80,14 +80,15 @@ def auth_magic_link_start(body: MagicLinkStartRequest, request: Request) -> Acce
     context = get_context(request)
     mailer, base_url = _mailer(context)
     db, now = context.platform_db, context.clock()
-    enforce(db, "magic_start_ip", client_ip(request, context.settings.trust_proxy), START_PER_IP, RATE_WINDOW, now)
+    enforce(db, "magic_start_ip", client_ip(request, context.settings), START_PER_IP, RATE_WINDOW, now)
     enforce(db, "magic_start_email", body.email, START_PER_EMAIL, RATE_WINDOW, now)
     user = db[accounts.USERS].find_one({"email": body.email, "status": accounts.ACTIVE})
     if user is None:
         return AcceptedResponse(accepted=True)
     raw = secrets.token_urlsafe(MAGIC_TOKEN_BYTES)
     db[MAGIC_LINKS].insert_one({"_id": new_id("mgl"), "token_hash": hash_token(raw), "user_id": user["_id"],
-                                "created_at": now, "expires_at": now + MAGIC_LINK_TTL, "used_at": None})
+                                "email": body.email, "created_at": now, "expires_at": now + MAGIC_LINK_TTL,
+                                "used_at": None})
     try:
         mailer.send(body.email, SUBJECT, BODY_TEMPLATE.format(url=f"{base_url}{MAGIC_LINK_PATH}?token={raw}"))
     except MailError as exc:
@@ -97,7 +98,8 @@ def auth_magic_link_start(body: MagicLinkStartRequest, request: Request) -> Acce
 
 @router.post("/auth/magic-link/verify", operation_id="auth_magic_link_verify", summary="Sign in with a link")
 def auth_magic_link_verify(body: SecretTokenRequest, request: Request, response: Response) -> TokenResponse:
-    """Spend a magic-link token and sign the user in.
+    """Spend a magic-link token and sign the user in; using the link proves the address, so it is marked verified
+    (only when the user still has the address the link was sent to).
 
     Args:
         body: The token from the link.
@@ -115,7 +117,7 @@ def auth_magic_link_verify(body: SecretTokenRequest, request: Request, response:
     _mailer(context)
     require_tokens(context)
     db, now = context.platform_db, context.clock()
-    enforce(db, "magic_verify_ip", client_ip(request, context.settings.trust_proxy), VERIFY_PER_IP, RATE_WINDOW, now)
+    enforce(db, "magic_verify_ip", client_ip(request, context.settings), VERIFY_PER_IP, RATE_WINDOW, now)
     link = db[MAGIC_LINKS].find_one_and_update(
         {"token_hash": hash_token(body.token), "used_at": None, "expires_at": {"$gt": now}},
         {"$set": {"used_at": now}}, return_document=ReturnDocument.AFTER,
@@ -125,4 +127,7 @@ def auth_magic_link_verify(body: SecretTokenRequest, request: Request, response:
     user = accounts.find_user(db, str(link["user_id"]))
     if user is None or user.get("status") != accounts.ACTIVE:
         raise unauthorized("account_disabled", "this account is disabled")
+    if link.get("email") is not None and link.get("email") == user.get("email"):
+        db[accounts.USERS].update_one({"_id": user["_id"], "email": link["email"]},
+                                      {"$set": {"email_verified_at": now}})
     return sign_in(context, request, response, user)

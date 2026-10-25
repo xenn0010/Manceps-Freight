@@ -112,9 +112,20 @@ def test_ttl_and_unique_options_applied(mongo_client: MongoClientT) -> None:
     assert events["seq_1"]["unique"] is True
     assert events["at_1"]["expireAfterSeconds"] == 30 * 24 * 3600
     idem = platform["idempotency_keys"].index_information()
-    assert idem["tenant_id_1_key_1_route_1"]["unique"] is True
+    assert idem["tenant_id_1_user_id_1_key_1_route_1"]["unique"] is True
     assert idem["created_at_1"]["expireAfterSeconds"] == 24 * 3600
     assert platform["rate_limits"].index_information()["at_1"]["expireAfterSeconds"] == 24 * 3600
+
+
+def test_retired_idempotency_index_is_dropped(mongo_client: MongoClientT) -> None:
+    """The old firm-wide idempotency constraint is removed so per-user keys can coexist."""
+    platform = mongo_client["platform"]
+    platform["idempotency_keys"].create_index([("tenant_id", 1), ("key", 1), ("route", 1)], unique=True,
+                                              name="tenant_id_1_key_1_route_1")
+    ensure_platform_indexes(platform)
+    ensure_platform_indexes(platform)
+    names = platform["idempotency_keys"].index_information()
+    assert "tenant_id_1_key_1_route_1" not in names and "tenant_id_1_user_id_1_key_1_route_1" in names
 
 
 def test_index_spec_options() -> None:

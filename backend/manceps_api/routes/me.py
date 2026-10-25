@@ -29,6 +29,7 @@ class MeUser(BaseModel):
     id: str
     phone: str | None
     email: str | None
+    email_verified: bool = Field(description="True once the email was confirmed through a sign-in link.")
     name: str | None
     status: str
 
@@ -93,8 +94,9 @@ def _render(request: Request, principal: Principal, user: Doc) -> Me:
         if membership["tenant_id"] == principal.tenant_id:
             role = membership["role"]
     return Me(
-        user=MeUser(id=str(user["_id"]), phone=user.get("phone"), email=user.get("email"), name=user.get("name"),
-                    status=str(user.get("status"))),
+        user=MeUser(id=str(user["_id"]), phone=user.get("phone"), email=user.get("email"),
+                    email_verified=user.get("email") is not None and user.get("email_verified_at") is not None,
+                    name=user.get("name"), status=str(user.get("status"))),
         memberships=[MeMembership(tenant_id=str(item["tenant_id"]), firm_name=item.get("firm_name"),
                                   role=str(item["role"])) for item in memberships],
         current=MeCurrent(tenant_id=principal.tenant_id, role=role),
@@ -137,7 +139,8 @@ def me_get(request: Request, principal: CurrentUser) -> Me:
 
 @router.patch("/me", operation_id="me_update", summary="Update my profile")
 def me_update(body: MePatch, request: Request, principal: CurrentUser) -> Me:
-    """Change the caller's name or email (emails are unique across users).
+    """Change the caller's name or email (emails are unique across users). A new email is unverified until a
+    sign-in link sent to it is used, and only a verified email can accept an invitation.
 
     Args:
         body: Fields to change.
@@ -155,8 +158,11 @@ def me_update(body: MePatch, request: Request, principal: CurrentUser) -> Me:
     if "email" in changes and db[accounts.USERS].find_one({"email": changes["email"],
                                                            "_id": {"$ne": principal.user_id}}):
         raise ApiError(409, "email_taken", EMAIL_TAKEN)
+    update: dict[str, Any] = {"$set": changes}
+    if "email" in changes and changes["email"] != _user(request, principal).get("email"):
+        update["$unset"] = {"email_verified_at": ""}
     try:
-        db[accounts.USERS].update_one({"_id": principal.user_id}, {"$set": changes})
+        db[accounts.USERS].update_one({"_id": principal.user_id}, update)
     except DuplicateKeyError as exc:
         raise ApiError(409, "email_taken", EMAIL_TAKEN) from exc
     return _render(request, principal, _user(request, principal))

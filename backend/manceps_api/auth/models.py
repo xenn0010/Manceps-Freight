@@ -5,17 +5,18 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from manceps_core.emails import EMAIL_MAX, normalize_email
 from manceps_core.phones import normalize_phone
 from manceps_core.tenancy import TENANT_PATTERN, Role
 
 from .scoped import LINK_TOKEN_PATTERN
+from .signup_tickets import TICKET_PATTERN
 
 FIRM_NAME_MIN, FIRM_NAME_MAX = 2, 60
 SECRET_TOKEN_PATTERN = r"^(mci_)?[A-Za-z0-9_-]{43}$"  # noqa: S105 - a regex, not a secret
-OTP_CODE_PATTERN = r"^\d{4,10}$"
+OTP_CODE_PATTERN = r"^[0-9]{4,10}$"
 
 LoginState = Literal["active", "provisioning", "no_firm"]
 
@@ -39,9 +40,9 @@ def normalize_firm_name(value: str) -> str:
 
 
 class StrictModel(BaseModel):
-    """Request models refuse unknown fields (a client cannot smuggle tenant_id or role)."""
+    """Request models refuse unknown fields (a client cannot smuggle tenant_id or role) and non-finite numbers."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
 
 class OtpStartRequest(StrictModel):
@@ -56,9 +57,12 @@ class OtpStartRequest(StrictModel):
 
 
 class OtpVerifyRequest(OtpStartRequest):
-    """Check a code; a phone with no account also needs the signup fields."""
+    """Prove the phone with a code, or with the signup ticket a code earned; a phone with no account also needs the
+    signup fields (send them with the code, or with the ticket from the 422 signup_details_required answer)."""
 
-    code: str = Field(pattern=OTP_CODE_PATTERN)
+    code: str | None = Field(default=None, pattern=OTP_CODE_PATTERN)
+    signup_ticket: str | None = Field(default=None, pattern=TICKET_PATTERN,
+                                      description="From error.details.signup_ticket of a 422 signup_details_required.")
     firm_name: str | None = Field(default=None, max_length=200)
     accept_terms: Literal[True] | None = None
 
@@ -66,6 +70,14 @@ class OtpVerifyRequest(OtpStartRequest):
     @classmethod
     def _firm_name(cls, value: str | None) -> str | None:
         return None if value is None else normalize_firm_name(value)
+
+    @model_validator(mode="after")
+    def _one_proof(self) -> OtpVerifyRequest:
+        if (self.code is None) == (self.signup_ticket is None):
+            raise ValueError("send either code or signup_ticket")
+        if self.signup_ticket is not None and (self.firm_name is None or self.accept_terms is not True):
+            raise ValueError("signup_ticket needs firm_name and accept_terms")
+        return self
 
 
 class SentResponse(BaseModel):

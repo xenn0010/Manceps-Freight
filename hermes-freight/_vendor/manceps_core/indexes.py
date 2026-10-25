@@ -27,6 +27,7 @@ SIGNUP_ATTEMPT_TTL_SECONDS = DAY_SECONDS
 INVITATION_TTL_AFTER_EXPIRY_SECONDS = 7 * DAY_SECONDS
 SESSION_TTL_AFTER_EXPIRY_SECONDS = 30 * DAY_SECONDS
 MAGIC_LINK_TTL_AFTER_EXPIRY_SECONDS = HOUR_SECONDS
+SIGNUP_TICKET_TTL_AFTER_EXPIRY_SECONDS = HOUR_SECONDS
 EXPIRE_AT_FIELD_TIME = 0
 
 KeyDirection: TypeAlias = int | str
@@ -95,7 +96,8 @@ FIRM_INDEXES: Mapping[str, tuple[IndexSpec, ...]] = {
     "facilities": (_idx(("geo", GEO_2DSPHERE)), _idx(("state", ASC), ("city", ASC))),
     "notes": (_idx(("ref.type", ASC), ("ref.id", ASC), ("created_at", ASC)),),
     "consent_events": (_idx(("subject.phone", ASC), ("channel", ASC), ("at", ASC)),
-                       _idx(("subject.type", ASC), ("subject.id", ASC), ("at", ASC))),
+                       _idx(("subject.type", ASC), ("subject.id", ASC), ("at", ASC)),
+                       _idx(("subject.type", ASC), ("subject.id", ASC), ("version", ASC), unique=True)),
     "loads": (_idx(("ref", ASC), unique=True), _idx(("status", ASC), ("updated_at", ASC)),
               _idx(("carrier_id", ASC), ("status", ASC)), _idx(("broker_mc", ASC)), _idx(("stops.window_start", ASC))),
     "load_events": (_idx(("load_id", ASC), ("at", ASC)),),
@@ -123,10 +125,35 @@ PLATFORM_INDEXES: Mapping[str, tuple[IndexSpec, ...]] = {
                     _idx(("expires_at", ASC), ttl=MAGIC_LINK_TTL_AFTER_EXPIRY_SECONDS)),
     "scoped_links": (_idx(("token_hash", ASC), unique=True), _idx(("tenant_id", ASC), ("subject.id", ASC))),
     "firms": (_idx(("slug", ASC), unique=True), _idx(("status", ASC))),
-    "idempotency_keys": (_idx(("tenant_id", ASC), ("key", ASC), ("route", ASC), unique=True),
+    "signup_tickets": (_idx(("token_hash", ASC), unique=True),
+                       _idx(("expires_at", ASC), ttl=SIGNUP_TICKET_TTL_AFTER_EXPIRY_SECONDS)),
+    "idempotency_keys": (_idx(("tenant_id", ASC), ("user_id", ASC), ("key", ASC), ("route", ASC), unique=True),
                          _idx(("created_at", ASC), ttl=IDEMPOTENCY_TTL_SECONDS)),
     "rate_limits": (_idx(("kind", ASC), ("key", ASC), ("at", ASC)), _idx(("at", ASC), ttl=RATE_LIMIT_TTL_SECONDS)),
 }
+
+
+# Indexes replaced by a stricter spec; dropped on startup so the old constraint cannot keep refusing writes.
+RETIRED_PLATFORM_INDEXES: Mapping[str, tuple[str, ...]] = {
+    "idempotency_keys": ("tenant_id_1_key_1_route_1",),
+}
+
+
+def _drop_retired(db: MongoDb, retired: Mapping[str, tuple[str, ...]]) -> None:
+    """Drop retired indexes that still exist; idempotent.
+
+    Args:
+        db: Database.
+        retired: Collection name to index names.
+
+    Raises:
+        pymongo.errors.PyMongoError: If the server is unreachable or refuses the drop.
+    """
+    for collection, names in retired.items():
+        existing = db[collection].index_information()
+        for name in names:
+            if name in existing:
+                db[collection].drop_index(name)
 
 
 def _ensure(db: MongoDb, specs: Mapping[str, tuple[IndexSpec, ...]]) -> None:
@@ -165,4 +192,5 @@ def ensure_platform_indexes(db: MongoDb) -> None:
     Raises:
         pymongo.errors.PyMongoError: If the server rejects an index or is unreachable.
     """
+    _drop_retired(db, RETIRED_PLATFORM_INDEXES)
     _ensure(db, PLATFORM_INDEXES)

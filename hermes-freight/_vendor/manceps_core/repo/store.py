@@ -18,8 +18,9 @@ from pymongo.errors import DuplicateKeyError
 
 from .. import audit
 from ..clock import Clock, utc_now
+from ..hashing import canonical_json
 from ..mongo import Doc, MongoDb
-from .errors import Conflict, NotFound
+from .errors import Conflict, Invalid, NotFound
 from .fields import parse_id
 
 LIVE: Mapping[str, Any] = {"deleted_at": None}
@@ -58,6 +59,28 @@ class WriteContext:
             after: State after, or None for a delete.
         """
         audit.write(db, self.who, what, ref, self.request_id, self.session_id, before, after, self.clock)
+
+
+def ensure_auditable(*states: Mapping[str, Any] | None) -> None:
+    """Refuse a write whose audit record could not be hashed, before anything is stored.
+
+    A write and its audit row must succeed or fail together; hashing first means a value the audit cannot hold
+    (NaN, Infinity, naive datetimes) aborts the write instead of storing it unaudited.
+
+    Args:
+        *states: States that will be hashed into the audit record (None is skipped).
+
+    Raises:
+        Invalid: If a state holds a value canonical JSON refuses.
+        TypeError: If a state holds a type that is not JSON-like (a programming error).
+    """
+    for state in states:
+        if state is None:
+            continue
+        try:
+            canonical_json(state)
+        except ValueError as exc:
+            raise Invalid("body", "numbers must be finite and times timezone-aware") from exc
 
 
 def ref_of(ref_type: str, doc: Mapping[str, Any]) -> dict[str, str]:
@@ -151,9 +174,11 @@ def insert(db: MongoDb, ctx: WriteContext, collection: str, ref_type: str, doc: 
     Raises:
         Conflict: On a unique-index clash with a duplicate rule.
         DuplicateKeyError: On a unique-index clash without one.
+        Invalid: If the document holds values the audit record cannot hash.
     """
     now = ctx.now()
     stored: Doc = {"_id": ObjectId(), **doc, "created_at": now, "updated_at": now, "created_by": dict(ctx.who)}
+    ensure_auditable(stored)
     try:
         db[collection].insert_one(stored)
     except DuplicateKeyError as exc:
@@ -183,7 +208,9 @@ def update(db: MongoDb, ctx: WriteContext, collection: str, ref_type: str, curre
     Raises:
         NotFound: If the record was deleted meanwhile.
         Conflict: On a unique-index clash with a duplicate rule.
+        Invalid: If the record or the changes hold values the audit record cannot hash.
     """
+    ensure_auditable(current, changes)
     operations: dict[str, Any] = {"$set": {**{k: v for k, v in changes.items() if v is not None},
                                            "updated_at": ctx.now()}}
     removed = {key: "" for key, value in changes.items() if value is None}
@@ -210,7 +237,9 @@ def soft_delete(db: MongoDb, ctx: WriteContext, collection: str, ref_type: str, 
 
     Raises:
         NotFound: If the record was deleted meanwhile.
+        Invalid: If the record holds values the audit record cannot hash.
     """
+    ensure_auditable(current, changes)
     now = ctx.now()
     operations: dict[str, Any] = {"$set": {**dict(changes or {}), "deleted_at": now, "updated_at": now}}
     if removed:

@@ -40,6 +40,7 @@ ACCEPT_PATH = "/invitations/accept"
 ACCEPT_PER_USER = 20
 RATE_WINDOW = timedelta(hours=1)
 PENDING, ACCEPTED, REVOKED = "pending", "accepted", "revoked"
+REMOVING = "removing"
 OWNER = "owner"
 USER_ID_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"
 OBJECT_ID_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"
@@ -273,18 +274,24 @@ def invitations_delete(invitation_id: Annotated[str, Path(pattern=OBJECT_ID_PATT
     return Response(status_code=204)
 
 
-def _identity_matches(invitation: Doc, user: Doc) -> bool:
-    """Check the accepting user matches at least one identifier on the invitation.
+def _check_identity(invitation: Doc, user: Doc) -> None:
+    """Require the accepting user to match the invitation's phone or its email, and an email only once verified.
 
     Args:
         invitation: Invitation document.
         user: Accepting user.
 
-    Returns:
-        True when the invitation's email or phone equals the user's.
+    Raises:
+        ApiError: 403 email_not_verified when only an unverified email matches, else 403 invitation_mismatch.
     """
-    return any(invitation.get(field) is not None and invitation.get(field) == user.get(field)
-               for field in ("email", "phone"))
+    phone, email = invitation.get("phone"), invitation.get("email")
+    if phone is not None and phone == user.get("phone"):
+        return
+    if email is not None and email == user.get("email"):
+        if user.get("email_verified_at") is not None:
+            return
+        raise ApiError(403, "email_not_verified", "verify this email address with a sign-in link first")
+    raise ApiError(403, "invitation_mismatch", "this invitation was sent to someone else")
 
 
 @router.post("/invitations/accept", operation_id="invitations_accept", summary="Accept an invitation")
@@ -300,7 +307,8 @@ def invitations_accept(body: SecretTokenRequest, request: Request, principal: Cu
         The firm and role; switch to it with /v1/auth/switch-firm.
 
     Raises:
-        ApiError: 404 unknown, used or expired; 403 invitation_mismatch; 409 already_member; 429.
+        ApiError: 404 unknown, used or expired; 403 invitation_mismatch or email_not_verified; 409 already_member;
+            429.
     """
     context = get_context(request)
     db, now = context.platform_db, context.clock()
@@ -310,8 +318,7 @@ def invitations_accept(body: SecretTokenRequest, request: Request, principal: Cu
     user = accounts.find_user(db, principal.user_id)
     if invitation is None or user is None:
         raise ApiError(404, "not_found", "invitation not found or expired")
-    if not _identity_matches(invitation, user):
-        raise ApiError(403, "invitation_mismatch", "this invitation was sent to someone else")
+    _check_identity(invitation, user)
     repo = PlatformRepo(db, str(invitation["tenant_id"]))
     if repo.find_one(accounts.MEMBERSHIPS, {"user_id": principal.user_id}) is not None:
         raise ApiError(409, "already_member", "you are already a member of this firm")
@@ -350,21 +357,74 @@ def _active_member(repo: PlatformRepo, user_id: str) -> Doc:
     return membership
 
 
-def _keep_an_owner(repo: PlatformRepo, membership: Doc, new_role: str | None) -> None:
-    """Refuse to demote or remove the firm's last owner.
+def _last_owner() -> ApiError:
+    """Build the refusal for leaving a firm without an owner.
+
+    Returns:
+        409 last_owner.
+    """
+    return ApiError(409, "last_owner", "a firm must keep at least one owner")
+
+
+def _owners_left(repo: PlatformRepo) -> int:
+    """Count the firm's active owners.
 
     Args:
         repo: Firm-confined repo.
-        membership: Membership being changed.
-        new_role: New role, or None for removal.
+
+    Returns:
+        The count.
+    """
+    return repo.count_documents(accounts.MEMBERSHIPS, {"role": OWNER, "status": accounts.ACTIVE})
+
+
+def change_membership_role(repo: PlatformRepo, membership: Doc, role: str, now: datetime) -> None:
+    """Change a member's role without ever leaving the firm ownerless, even under concurrent changes.
+
+    An owner's demotion is written first and the owners are counted after it: of two concurrent demotions at
+    most one can see another owner left, and a demotion that leaves none is undone.
+
+    Args:
+        repo: Firm-confined repo.
+        membership: The active membership as loaded.
+        role: New role.
+        now: Current UTC time.
 
     Raises:
-        ApiError: 409 last_owner.
+        ApiError: 404 when the member changed meanwhile, 409 last_owner.
     """
-    if membership["role"] != OWNER or new_role == OWNER:
-        return
-    if repo.count_documents(accounts.MEMBERSHIPS, {"role": OWNER, "status": accounts.ACTIVE}) <= 1:
-        raise ApiError(409, "last_owner", "a firm must keep at least one owner")
+    was_owner = membership["role"] == OWNER
+    unchanged = {"_id": membership["_id"], "role": membership["role"], "status": accounts.ACTIVE}
+    if not repo.update_one(accounts.MEMBERSHIPS, unchanged, {"$set": {"role": role, "updated_at": now}}):
+        raise ApiError(404, "not_found", "member not found")
+    if was_owner and role != OWNER and _owners_left(repo) == 0:
+        repo.update_one(accounts.MEMBERSHIPS, {"_id": membership["_id"], "role": role},
+                        {"$set": {"role": OWNER, "updated_at": now}})
+        raise _last_owner()
+
+
+def remove_membership(repo: PlatformRepo, membership: Doc, now: datetime) -> None:
+    """Remove a member without ever leaving the firm ownerless, even under concurrent removals.
+
+    The membership is first marked `removing` (it no longer counts or authenticates), then the owners are counted;
+    when none is left the mark is undone, otherwise the row is deleted.
+
+    Args:
+        repo: Firm-confined repo.
+        membership: The active membership as loaded.
+        now: Current UTC time.
+
+    Raises:
+        ApiError: 404 when the member changed meanwhile, 409 last_owner.
+    """
+    if not repo.update_one(accounts.MEMBERSHIPS, {"_id": membership["_id"], "status": accounts.ACTIVE},
+                           {"$set": {"status": REMOVING, "updated_at": now}}):
+        raise ApiError(404, "not_found", "member not found")
+    if membership["role"] == OWNER and _owners_left(repo) == 0:
+        repo.update_one(accounts.MEMBERSHIPS, {"_id": membership["_id"], "status": REMOVING},
+                        {"$set": {"status": accounts.ACTIVE, "updated_at": now}})
+        raise _last_owner()
+    repo.delete_one(accounts.MEMBERSHIPS, {"_id": membership["_id"], "status": REMOVING})
 
 
 def _member(request: Request, membership: Doc) -> Member:
@@ -402,9 +462,7 @@ def members_update(user_id: Annotated[str, Path(pattern=USER_ID_PATTERN)], body:
     """
     repo = _repo(request, principal)
     membership = _active_member(repo, user_id)
-    _keep_an_owner(repo, membership, body.role)
-    repo.update_one(accounts.MEMBERSHIPS, {"_id": membership["_id"]},
-                    {"$set": {"role": body.role, "updated_at": get_context(request).clock()}})
+    change_membership_role(repo, membership, body.role, get_context(request).clock())
     auditing.record(request, principal, "member.update", {"type": "member", "id": user_id},
                     {"role": membership["role"]}, {"role": body.role})
     return _member(request, {**membership, "role": body.role})
@@ -428,8 +486,7 @@ def members_delete(user_id: Annotated[str, Path(pattern=USER_ID_PATTERN)], reque
     """
     repo = _repo(request, principal)
     membership = _active_member(repo, user_id)
-    _keep_an_owner(repo, membership, None)
-    repo.delete_one(accounts.MEMBERSHIPS, {"_id": membership["_id"]})
+    remove_membership(repo, membership, get_context(request).clock())
     auditing.record(request, principal, "member.remove", {"type": "member", "id": user_id},
                     {"role": membership["role"]}, None)
     return Response(status_code=204)

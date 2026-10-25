@@ -1,8 +1,9 @@
 """Canonical JSON and SHA-256 hashing for audit records, approvals and idempotency.
 
-Canonical form: sorted keys, no whitespace, UTF-8, no NaN or Infinity. Datetimes must be timezone-aware and are
-rendered in ISO 8601; ObjectIds are rendered as hex strings. Anything else that is not plain JSON is refused, so two
-different values can never hash the same by accident.
+Canonical form: sorted keys, no whitespace, UTF-8, no NaN or Infinity. Object keys must be strings (json would turn
+`{1: x}` into `{"1": x}` and hash it like `{"1": x}`). Datetimes must be timezone-aware and are rendered in ISO 8601;
+ObjectIds are rendered as hex strings. Anything else that is not plain JSON is refused, so two different values can
+never hash the same by accident.
 """
 
 from __future__ import annotations
@@ -39,6 +40,27 @@ def _default(value: Any) -> str:
     raise TypeError(f"type {type(value).__name__} is not allowed in canonical JSON")
 
 
+def _check_keys(value: Any) -> None:
+    """Refuse mappings with non-string keys anywhere in a value.
+
+    Args:
+        value: JSON-like value.
+
+    Raises:
+        TypeError: For a non-string key.
+    """
+    pending = [value]
+    while pending:
+        item = pending.pop()
+        if isinstance(item, dict):
+            mapping: dict[Any, Any] = item  # pyright: ignore[reportUnknownVariableType]
+            if not all(isinstance(key, str) for key in mapping):
+                raise TypeError("canonical JSON object keys must be strings")
+            pending.extend(mapping.values())
+        elif isinstance(item, list | tuple):
+            pending.extend(item)  # pyright: ignore[reportUnknownArgumentType]
+
+
 def canonical_json(value: Any) -> str:
     """Render a value as canonical JSON.
 
@@ -50,8 +72,9 @@ def canonical_json(value: Any) -> str:
 
     Raises:
         ValueError: For NaN/Infinity or naive datetimes.
-        TypeError: For unsupported types.
+        TypeError: For unsupported types or non-string object keys.
     """
+    _check_keys(value)
     return json.dumps(value, sort_keys=True, separators=SEPARATORS, ensure_ascii=False, allow_nan=False,
                       default=_default)
 

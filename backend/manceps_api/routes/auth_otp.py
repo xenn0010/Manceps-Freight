@@ -1,7 +1,10 @@
 """Phone OTP sign-in and signup (`/v1/auth/otp/*`) and the public signup status poll.
 
 Fails closed like signup-api: no verifier is 503, a verifier outage is 502, and only an approved code signs in.
-Limits (signup-api constants): 3 sends per phone and 10 per IP per hour, 10 checks per phone per hour.
+Limits (signup-api constants): 3 sends per phone and 10 per IP per hour, 10 checks per phone per hour, plus
+CHECK_PER_IP checks per IP. Verify never reveals whether a phone has an account: the limits and the code are checked
+before the account lookup, a wrong code is the same 400 for every phone, and only after an approved code does an
+unknown phone learn it needs signup details (with a single-use signup ticket, so the spent code is not wasted).
 """
 
 from __future__ import annotations
@@ -18,6 +21,7 @@ from manceps_core.mongo import Doc
 from ..auth.issue import sign_in
 from ..auth.models import OtpStartRequest, OtpVerifyRequest, SentResponse, SignupStatus, TokenResponse
 from ..auth.principal import require_tokens
+from ..auth.signup_tickets import issue_ticket, redeem_ticket
 from ..context import AppContext, get_context
 from ..errors import ApiError
 from ..integrations.twilio_verify import Verifier, VerifyError
@@ -30,6 +34,7 @@ RATE_WINDOW = timedelta(hours=1)
 SEND_PER_PHONE = 3
 SEND_PER_IP = 10
 CHECK_PER_PHONE = 10
+CHECK_PER_IP = 60
 SIGNUP_STATUS_PER_IP = 120
 SIGNUP_TOKEN_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"  # noqa: S105 - a regex, not a secret
 FAILED_MESSAGE = "We could not set up your firm. Please try signing up again."
@@ -71,7 +76,7 @@ def auth_otp_start(body: OtpStartRequest, request: Request) -> SentResponse:
     context = get_context(request)
     verifier = _verifier(context)
     db, now = context.platform_db, context.clock()
-    enforce(db, "otp_send_ip", client_ip(request, context.settings.trust_proxy), SEND_PER_IP, RATE_WINDOW, now)
+    enforce(db, "otp_send_ip", client_ip(request, context.settings), SEND_PER_IP, RATE_WINDOW, now)
     enforce(db, "otp_send_phone", body.phone, SEND_PER_PHONE, RATE_WINDOW, now)
     try:
         verifier.send(body.phone)
@@ -103,7 +108,7 @@ def _sign_up(context: AppContext, request: Request, body: OtpVerifyRequest) -> t
         raise ApiError(409, "already_signed_up", ALREADY_SIGNED_UP) from exc
     firm_name = cast(str, body.firm_name)
     try:
-        token = signups.enqueue(db, body.phone, firm_name, client_ip(request, context.settings.trust_proxy),
+        token = signups.enqueue(db, body.phone, firm_name, client_ip(request, context.settings),
                                 str(user["_id"]), now)
     except signups.AlreadySignedUp as exc:
         db[accounts.USERS].delete_one({"_id": user["_id"]})
@@ -111,12 +116,50 @@ def _sign_up(context: AppContext, request: Request, body: OtpVerifyRequest) -> t
     return user, token
 
 
-@router.post("/auth/otp/verify", operation_id="auth_otp_verify", summary="Sign in or sign up with a code")
-def auth_otp_verify(body: OtpVerifyRequest, request: Request, response: Response) -> TokenResponse:
-    """Check a code; sign in an existing user, or create the user and queue the firm for a new phone.
+def _prove_phone(context: AppContext, verifier: Verifier, body: OtpVerifyRequest) -> None:
+    """Check the code, or spend the signup ticket an earlier approved code earned.
 
     Args:
-        body: Phone, code, and for a new phone firm_name and accept_terms.
+        context: Application context.
+        verifier: Phone verifier.
+        body: Verify request (exactly one of code and signup_ticket).
+
+    Raises:
+        ApiError: 400 invalid_code or invalid_ticket, 502 when the verifier fails.
+    """
+    if body.signup_ticket is not None:
+        if not redeem_ticket(context.platform_db, body.signup_ticket, body.phone, context.clock()):
+            raise ApiError(400, "invalid_ticket", "this signup ticket is invalid, used or expired")
+        return
+    try:
+        approved = verifier.check(body.phone, cast(str, body.code))
+    except VerifyError as exc:
+        raise ApiError(502, "verify_unavailable", "could not check the code; try again") from exc
+    if not approved:
+        raise ApiError(400, "invalid_code", "wrong or expired code")
+
+
+def _signup_details_required(context: AppContext, phone: str) -> ApiError:
+    """Ask a verified new phone for the signup fields, handing back a ticket so its code is not wasted.
+
+    Args:
+        context: Application context.
+        phone: Verified E.164 phone.
+
+    Returns:
+        The 422 to raise.
+    """
+    ticket, expires_in = issue_ticket(context.platform_db, phone, context.clock())
+    return ApiError(422, "signup_details_required", "new accounts need firm_name and accept_terms",
+                    {"fields": ["firm_name", "accept_terms"], "signup_ticket": ticket, "expires_in": expires_in})
+
+
+@router.post("/auth/otp/verify", operation_id="auth_otp_verify", summary="Sign in or sign up with a code")
+def auth_otp_verify(body: OtpVerifyRequest, request: Request, response: Response) -> TokenResponse:
+    """Check a code (or signup ticket); sign in an existing user, or create the user and queue the firm.
+
+    Args:
+        body: Phone, code or signup_ticket, and for a new phone firm_name and accept_terms.
         request: Incoming request.
         response: Outgoing response (refresh cookie for browsers).
 
@@ -124,25 +167,21 @@ def auth_otp_verify(body: OtpVerifyRequest, request: Request, response: Response
         Tokens; a new signup gets tid=null, role=owner, state=provisioning and a signup_token.
 
     Raises:
-        ApiError: 503 without Twilio or JWT keys, 422 signup_details_required, 429, 502, 400 invalid_code, 409.
+        ApiError: 503 without Twilio or JWT keys, 429, 400 invalid_code or invalid_ticket, 502, 422
+            signup_details_required (only after an approved code, with details.signup_ticket), 409.
     """
     context = get_context(request)
     verifier = _verifier(context)
     require_tokens(context)
     db, now = context.platform_db, context.clock()
-    user = db[accounts.USERS].find_one({"phone": body.phone})
-    if user is None and (body.firm_name is None or body.accept_terms is not True):
-        raise ApiError(422, "signup_details_required", "new accounts need firm_name and accept_terms",
-                       {"fields": ["firm_name", "accept_terms"]})
+    enforce(db, "otp_check_ip", client_ip(request, context.settings), CHECK_PER_IP, RATE_WINDOW, now)
     enforce(db, "otp_check_phone", body.phone, CHECK_PER_PHONE, RATE_WINDOW, now)
-    try:
-        approved = verifier.check(body.phone, body.code)
-    except VerifyError as exc:
-        raise ApiError(502, "verify_unavailable", "could not check the code; try again") from exc
-    if not approved:
-        raise ApiError(400, "invalid_code", "wrong or expired code")
+    _prove_phone(context, verifier, body)
+    user = db[accounts.USERS].find_one({"phone": body.phone})
     signup_token: str | None = None
     if user is None:
+        if body.firm_name is None or body.accept_terms is not True:
+            raise _signup_details_required(context, body.phone)
         user, signup_token = _sign_up(context, request, body)
     if user.get("status") != accounts.ACTIVE:
         raise ApiError(401, "account_disabled", "this account is disabled", headers={"WWW-Authenticate": "Bearer"})
@@ -165,7 +204,7 @@ def signup_status_get(token: Annotated[str, Path(pattern=SIGNUP_TOKEN_PATTERN)],
     """
     context = get_context(request)
     db = context.platform_db
-    enforce(db, "signup_status_ip", client_ip(request, context.settings.trust_proxy), SIGNUP_STATUS_PER_IP,
+    enforce(db, "signup_status_ip", client_ip(request, context.settings), SIGNUP_STATUS_PER_IP,
             RATE_WINDOW, context.clock())
     doc = signups.find_status(db, token)
     if doc is None:

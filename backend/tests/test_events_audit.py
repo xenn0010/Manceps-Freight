@@ -64,6 +64,7 @@ def _serialize_find_and_modify(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(MockCollection, "find_one_and_update", atomic)
 
 
+@pytest.mark.mongomock_only
 def test_counter_retries_first_upsert_race(firm_db: MongoDb, monkeypatch: pytest.MonkeyPatch) -> None:
     """When a concurrent first upsert wins the _id race, the loser retries and gets the next value."""
     original = vars(MockCollection)["find_one_and_update"]

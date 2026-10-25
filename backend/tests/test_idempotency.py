@@ -160,7 +160,7 @@ def test_idempotency_in_progress_is_409(client: TestClient, calls: Calls, mongo_
                                         clock: FakeClock) -> None:
     """A key whose first request is still running cannot be used concurrently."""
     mongo_client["platform"]["idempotency_keys"].insert_one({
-        "tenant_id": TENANT_A, "key": KEY, "route": "POST /v1/things",
+        "tenant_id": TENANT_A, "user_id": "user-1", "key": KEY, "route": "POST /v1/things",
         "body_hash": sha256_hex({"name": "x"}), "status": "in_progress", "created_at": clock(),
     })
     status, body, _ = _post(client, {"name": "x"})
@@ -188,7 +188,7 @@ def test_idempotency_concurrent_claim_resolves_to_winner(client: TestClient, cal
     def racing_find_one(self: PlatformRepo, name: str, query: Any) -> Any:
         if name == "idempotency_keys" and state["first"]:
             state["first"] = False
-            collection.insert_one({"tenant_id": TENANT_A, "key": KEY, "route": "POST /v1/things",
+            collection.insert_one({"tenant_id": TENANT_A, "user_id": "user-1", "key": KEY, "route": "POST /v1/things",
                                    "body_hash": sha256_hex({"name": "x"}), "status": "done",
                                    "response": {"status_code": 201, "body": {"id": 99, "name": "x"}},
                                    "created_at": START})

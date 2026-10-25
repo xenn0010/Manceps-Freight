@@ -2,6 +2,8 @@
 
 Using a refresh token marks its row `rotated_to` the new row (a conditional update, so two concurrent uses cannot
 both win). Presenting a token that was already rotated revokes the whole family: the token was stolen or replayed.
+The claim also requires the row to be unrevoked, and each session records the user's token epoch, so a refresh
+racing logout, logout-all or reuse revocation can never leave a live successor behind.
 Sessions belong to a user, so every lookup filters by the user id from a verified token or by the token hash.
 """
 
@@ -48,7 +50,7 @@ def hash_token(raw: str) -> str:
 
 
 def create_session(db: MongoDb, user_id: str, tenant_id: str | None, now: datetime, ttl: timedelta,
-                   ua: str, ip: str, family_id: str | None = None) -> tuple[Doc, str]:
+                   ua: str, ip: str, epoch: int, family_id: str | None = None) -> tuple[Doc, str]:
     """Start a session (or the next link of a family) and return its one-time refresh token.
 
     Args:
@@ -59,6 +61,7 @@ def create_session(db: MongoDb, user_id: str, tenant_id: str | None, now: dateti
         ttl: Refresh token lifetime.
         ua: User agent (bounded).
         ip: Client IP.
+        epoch: The user's token epoch when the family started; a later logout-all makes it stale.
         family_id: Existing family when rotating, None for a new login.
 
     Returns:
@@ -68,7 +71,7 @@ def create_session(db: MongoDb, user_id: str, tenant_id: str | None, now: dateti
     session: Doc = {
         "_id": new_id(SESSION_PREFIX), "user_id": user_id, "tenant_id": tenant_id,
         "family_id": family_id or new_id(FAMILY_PREFIX), "token_hash": hash_token(raw), "rotated_to": None,
-        "created_at": now, "expires_at": now + ttl, "revoked_at": None, "ua": ua, "ip": ip,
+        "created_at": now, "expires_at": now + ttl, "revoked_at": None, "ua": ua, "ip": ip, "epoch": epoch,
     }
     db[SESSIONS].insert_one(dict(session))
     return session, raw
@@ -119,8 +122,8 @@ def rotate(db: MongoDb, raw: str, now: datetime, ttl: timedelta, ua: str, ip: st
         (new session, new raw refresh token).
 
     Raises:
-        RefreshError: invalid_refresh for unknown, revoked or expired tokens; refresh_reuse (after revoking the
-            family) for a token that was already rotated.
+        RefreshError: invalid_refresh for unknown, revoked or expired tokens (including one revoked while this call
+            ran); refresh_reuse (after revoking the family) for a token that was already rotated.
     """
     current = db[SESSIONS].find_one({"token_hash": hash_token(raw)})
     if current is None or current["revoked_at"] is not None or current["expires_at"] <= now:
@@ -129,12 +132,15 @@ def rotate(db: MongoDb, raw: str, now: datetime, ttl: timedelta, ua: str, ip: st
         revoke_family(db, str(current["family_id"]), now)
         raise RefreshError("refresh_reuse", "the refresh token was already used; please sign in again")
     successor, new_raw = create_session(db, str(current["user_id"]), current["tenant_id"], now, ttl, ua, ip,
-                                        family_id=str(current["family_id"]))
-    claimed = db[SESSIONS].update_one({"_id": current["_id"], "rotated_to": None},
+                                        int(current.get("epoch") or 0), family_id=str(current["family_id"]))
+    claimed = db[SESSIONS].update_one({"_id": current["_id"], "rotated_to": None, "revoked_at": None},
                                       {"$set": {"rotated_to": successor["_id"], "rotated_at": now}})
     if claimed.modified_count == 0:
         db[SESSIONS].delete_one({"_id": successor["_id"]})
         revoke_family(db, str(current["family_id"]), now)
+        latest = db[SESSIONS].find_one({"_id": current["_id"]}, {"rotated_to": 1})
+        if latest is None or latest.get("rotated_to") is None:
+            raise RefreshError("invalid_refresh", "the refresh token is not valid")
         raise RefreshError("refresh_reuse", "the refresh token was already used; please sign in again")
     return successor, new_raw
 

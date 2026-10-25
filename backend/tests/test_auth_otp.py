@@ -54,7 +54,8 @@ def test_otp_new_user_without_signup_details_is_422(client: TestClient, verifier
     response = client.post("/v1/auth/otp/verify", json={"phone": PHONE_NEW, "code": GOOD_CODE})
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "signup_details_required"
-    assert verifier.checked == []
+    assert str(response.json()["error"]["details"]["signup_ticket"]).startswith("mcs_")
+    assert verifier.checked == [(PHONE_NEW, GOOD_CODE)]
 
 
 def test_otp_wrong_code_400(client: TestClient, mongo_client: MongoClientT) -> None:

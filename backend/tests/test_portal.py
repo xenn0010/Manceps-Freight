@@ -133,5 +133,5 @@ def test_portal_is_tenant_isolated(client: TestClient, mongo_client: MongoClient
     assert client.get("/v1/portal/me", headers=bearer(token_b)).json()["firm_name"] == "Bolt Logistics"
     firm_db(mongo_client, TENANT_A)["carriers"].delete_many({})
     gone = client.get("/v1/portal/me", headers=bearer(token_a))
-    assert gone.status_code == 404
+    assert gone.status_code == 401 and gone.json()["error"]["code"] == "link_revoked"
     assert client.get("/v1/portal/me", headers=bearer(token_b)).status_code == 200

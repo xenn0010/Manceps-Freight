@@ -1,6 +1,6 @@
 """Idempotency-Key support backed by `platform.idempotency_keys` (24 h).
 
-Same key, route and tenant with the same body replays the stored response with `Idempotency-Replayed: true`; a
+Same key, route, tenant and user with the same body replays the stored response with `Idempotency-Replayed: true`; a
 different body is 409 `idempotency_conflict`; a request still running under the key is 409 `idempotency_in_progress`.
 If the handler fails before saving a response, the key is released so the client can retry.
 
@@ -104,11 +104,13 @@ def _resolve(existing: dict[str, Any], body_hash: str) -> NoReturn:
     raise ApiError(409, "idempotency_in_progress", IN_PROGRESS_MESSAGE)
 
 
-def _claim(repo: PlatformRepo, key: str, route: str, body_hash: str, now: datetime) -> Any:
-    """Claim a key for this request or resolve an earlier use of it.
+def _claim(repo: PlatformRepo, user_id: str, key: str, route: str, body_hash: str, now: datetime) -> Any:
+    """Claim a key for this request or resolve an earlier use of it (keys are per user: one member's key never
+    replays another member's response).
 
     Args:
         repo: Tenant-scoped platform repo.
+        user_id: Caller's user id.
         key: Idempotency key.
         route: "METHOD /path".
         body_hash: Hash of the body.
@@ -121,7 +123,7 @@ def _claim(repo: PlatformRepo, key: str, route: str, body_hash: str, now: dateti
         ApiError: 409 conflicts.
         ReplayResponse: When a stored response exists.
     """
-    query = {"key": key, "route": route}
+    query = {"user_id": user_id, "key": key, "route": route}
     existing = repo.find_one(IDEMPOTENCY_KEYS, query)
     if existing is not None:
         if existing["created_at"] > now - IDEMPOTENCY_TTL:
@@ -164,7 +166,8 @@ def idempotency_dependency(
         context = get_context(request)
         repo = PlatformRepo.for_principal(context.platform_db, principal)
         route = f"{request.method} {request.url.path}"
-        guard = IdempotencyGuard(repo, _claim(repo, key, route, _body_hash(await request.body()), context.clock()))
+        body_hash = _body_hash(await request.body())
+        guard = IdempotencyGuard(repo, _claim(repo, principal.user_id, key, route, body_hash, context.clock()))
         try:
             yield guard
         finally:

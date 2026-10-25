@@ -9,6 +9,7 @@ from fastapi import APIRouter, Body, Path, Request, Response
 from pydantic import BaseModel, Field
 
 from manceps_core.repo import carriers, consent
+from manceps_core.repo.errors import Conflict
 from manceps_core.tenancy import PlatformRepo
 
 from .. import auditing
@@ -18,7 +19,7 @@ from ..auth.scoped import DEFAULT_LINK_DAYS, SCOPED_LINKS, issue_link
 from ..context import firm_db, get_context
 from ..errors import ApiError
 from .carriers import Carrier, render_carrier
-from .common import ID_MAX, RecordId
+from .common import ID_MAX, RecordId, can_set_terms
 
 router = APIRouter(prefix="/v1", tags=["carriers"])
 
@@ -61,6 +62,9 @@ def carrier_consent_grant(carrier_id: RecordId, body: ConsentGrant, request: Req
                           principal: FirmDispatcher) -> Carrier:
     """Append a grant to the consent ledger, then refresh the carrier's consent cache from the ledger.
 
+    Granting consent is a terms change: only the owner records it directly; a dispatcher gets 409
+    approval_required (details.approval_kind = carrier_terms_change). Revoking is never gated.
+
     Args:
         carrier_id: Carrier id.
         body: Channel, method and optional evidence.
@@ -71,8 +75,11 @@ def carrier_consent_grant(carrier_id: RecordId, body: ConsentGrant, request: Req
         The carrier with its refreshed consent.
 
     Raises:
-        RepoError: 404 unknown carrier, 422 blank method.
+        RepoError: 404 unknown carrier, 409 approval_required for a dispatcher, 422 blank method.
     """
+    if not can_set_terms(principal):
+        raise Conflict("approval_required", "recording a carrier's consent needs the owner's approval",
+                       {"approval_kind": carriers.APPROVAL_KIND, "fields": ["consent"]})
     doc = consent.record_consent(firm_db(request, principal), auditing.write_context(request, principal), "carrier",
                                  carrier_id, body.channel, consent.GRANTED, body.method, body.evidence_ref)
     return render_carrier(doc)
@@ -82,7 +89,8 @@ def carrier_consent_grant(carrier_id: RecordId, body: ConsentGrant, request: Req
                summary="Revoke consent")
 def carrier_consent_revoke(carrier_id: RecordId, channel: Annotated[ConsentChannel, Path()], request: Request,
                            principal: FirmDispatcher) -> Carrier:
-    """Append a revoke to the consent ledger, then refresh the carrier's consent cache.
+    """Append a revoke to the consent ledger, then refresh the carrier's consent cache (immediate for any
+    dispatcher or owner: a STOP never waits for an approval).
 
     Args:
         carrier_id: Carrier id.

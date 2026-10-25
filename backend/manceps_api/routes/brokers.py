@@ -27,7 +27,7 @@ router = APIRouter(prefix="/v1", tags=["brokers"])
 
 CHECKS_PER_FIRM = 60
 RATE_WINDOW = timedelta(hours=1)
-MC_PATTERN = r"^(?:[Mm][Cc][- ]?)?\d{1,10}$"
+MC_PATTERN = r"^(?:[Mm][Cc][- ]?)?[0-9]{1,10}$"
 CODE_QUERY_MAX = 32
 
 McPath = Annotated[str, Path(pattern=MC_PATTERN, description="MC number, digits or MC-123456.")]

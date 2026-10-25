@@ -1,8 +1,9 @@
 """Broker memory keyed by MC number (plugin-compatible: unique `mc_number`, `notes[]`, `tags[]`) and check history.
 
 Notes are appended to the broker's `notes` array exactly like the plugin's `broker_remember` (`{at, text,
-session_id}`, plus `by`). Vetting results go to `broker_checks` (the plugin's collection and shape) and the latest
-verdict is copied to `brokers.last_check`.
+session_id}`, plus `by`); only the newest MAX_NOTES_KEPT stay, so the document can never outgrow MongoDB's limit.
+Vetting results go to `broker_checks` (the plugin's collection and shape) and the latest verdict is copied to
+`brokers.last_check`.
 """
 
 from __future__ import annotations
@@ -16,12 +17,13 @@ from pymongo import DESCENDING, ReturnDocument
 from ..mongo import Doc, MongoDb
 from . import fields
 from .errors import Invalid, NotFound
-from .store import LIVE, WriteContext, find_live, insert, list_live, ref_of, update
+from .store import LIVE, WriteContext, ensure_auditable, find_live, insert, list_live, ref_of, update
 
 BROKERS = "brokers"
 BROKER_CHECKS = "broker_checks"
 REF_TYPE = "broker"
 MAX_NOTES_RETURNED = 20
+MAX_NOTES_KEPT = 200
 PAYMENT_TERMS_MAX = 200
 DUPLICATE_MC = ("duplicate_mc", "this broker is already in your firm")
 
@@ -141,7 +143,7 @@ def update_broker(db: MongoDb, ctx: WriteContext, mc: Any, changes: Mapping[str,
 
 
 def add_note(db: MongoDb, ctx: WriteContext, mc: Any, text: str) -> dict[str, Any]:
-    """Append a note to a broker (plugin shape).
+    """Append a note to a broker (plugin shape), keeping only the newest MAX_NOTES_KEPT.
 
     Args:
         db: Firm database.
@@ -159,8 +161,10 @@ def add_note(db: MongoDb, ctx: WriteContext, mc: Any, text: str) -> dict[str, An
     body = fields.text("text", text, fields.MAX_NOTE_CHARS, required=True)
     current = get_broker(db, mc)
     note = {"at": ctx.now(), "text": body, "session_id": ctx.session_id, "by": dict(ctx.who)}
+    ensure_auditable(current, note)
+    push = {"notes": {"$each": [note], "$slice": -MAX_NOTES_KEPT}}
     after = db[BROKERS].find_one_and_update({"_id": current["_id"], **LIVE},
-                                            {"$push": {"notes": note}, "$set": {"updated_at": note["at"]}},
+                                            {"$push": push, "$set": {"updated_at": note["at"]}},
                                             return_document=ReturnDocument.AFTER)
     if after is None:
         raise NotFound(REF_TYPE)

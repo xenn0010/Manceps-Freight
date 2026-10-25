@@ -52,12 +52,13 @@ def auth_refresh(
         New tokens; the old refresh token is spent.
 
     Raises:
-        ApiError: 401 invalid_refresh or refresh_reuse (the family is then revoked), 429, 503.
+        ApiError: 401 invalid_refresh (also after logout-all bumped the user's epoch) or refresh_reuse (the family
+            is then revoked), 429, 503.
     """
     context = get_context(request)
     require_tokens(context)
     db, now = context.platform_db, context.clock()
-    ip = client_ip(request, context.settings.trust_proxy)
+    ip = client_ip(request, context.settings)
     enforce(db, "refresh_ip", ip, REFRESH_PER_IP, RATE_WINDOW, now)
     raw = body.refresh_token if body is not None and body.refresh_token else mc_refresh
     if not raw:
@@ -68,7 +69,7 @@ def auth_refresh(
     except sessions.RefreshError as exc:
         raise unauthorized(exc.code, exc.message) from exc
     user = accounts.find_user(db, str(session["user_id"]))
-    if user is None or user.get("status") != accounts.ACTIVE:
+    if user is None or user.get("status") != accounts.ACTIVE or user.get("token_epoch") != session["epoch"]:
         sessions.revoke_family(db, str(session["family_id"]), now)
         raise unauthorized("invalid_refresh", "the refresh token is not valid")
     target = resolve_target(db, user, session["tenant_id"])
