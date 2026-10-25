@@ -1,0 +1,168 @@
+{
+  "project_name": "FreightOS Phase 1 Dispatcher Operations Web App",
+  "app_type": "dashboard",
+  "target_viewport": "Desktop Only (1280px - 1920px)",
+  "context": "Hackathon Stage Demo for a small trucking fleet 'Demo West Freight' with 4 trucks in California (Truck 101, Truck 102, Truck 103, Truck 104). Focused on real-time AI dispatch, route optimization, return-load decisioning, simulated broker negotiations, and workflow automation.",
+  "theme_and_colors": {
+    "background_canvas": "#F0F0F7",
+    "nav_rail_bg": "#1E1E24",
+    "card_bg": "#FFFFFF",
+    "text_primary": "#333239",
+    "text_muted": "#6E6D7A",
+    "text_light": "#A1A0AC",
+    "brand_primary_indigo": "#4351AC",
+    "brand_indigo_hover": "#354293",
+    "brand_indigo_light": "#E8EAF6",
+    "status_healthy_green": "#62A37E",
+    "status_green_bg": "#E2F2E9",
+    "status_at_risk_amber": "#D97706",
+    "status_amber_bg": "#FEF3C7",
+    "status_alert_red": "#DC2626",
+    "status_red_bg": "#FEE2E2",
+    "pastel_tints": {
+      "mint": "#95E8CA",
+      "lavender_soft": "#C1BCDD",
+      "lavender_deep": "#ACA3D9",
+      "ice_blue": "#E2E8F0"
+    },
+    "map_legend": {
+      "confirmed_solid": "#4351AC",
+      "proposed_dashed": "#818CF8",
+      "empty_dotted": "#9CA3AF"
+    }
+  },
+  "typography": {
+    "font_family_main": "Inter, system-ui, -apple-system, sans-serif",
+    "font_family_figures": "Inter, Roboto, sans-serif",
+    "font_family_mono": "JetBrains Mono, monospace",
+    "headings": {
+      "h1": "text-2xl font-bold tracking-tight text-[#333239]",
+      "h2": "text-xl font-semibold text-[#333239]",
+      "h3": "text-lg font-semibold text-[#333239]",
+      "h4": "text-base font-medium text-[#333239]"
+    },
+    "body": "text-sm text-[#333239] leading-relaxed",
+    "metrics_value": "text-2xl font-bold font-mono text-[#333239] tracking-tight",
+    "badge_text": "text-xs font-medium tracking-wide"
+  },
+  "layout_architecture": {
+    "structure": "Fixed-height viewport (100vh) non-scrolling parent shell with 3-column layout: Nav Rail + Main Canvas Area + Contextual Right Drawer Panel",
+    "nav_rail": {
+      "width": "w-16 (64px)",
+      "bg": "bg-[#1E1E24]",
+      "position": "fixed left-0 top-0 bottom-0 z-40 flex flex-col items-center py-4",
+      "items": ["Dashboard (active)", "Fleet", "Loads", "Analytics", "Settings"]
+    },
+    "header": {
+      "height": "h-16 (64px)",
+      "bg": "bg-white/90 backdrop-blur-md border-b border-[#E2E8F0]",
+      "elements": [
+        "Brand Logo + Fleet Name 'Demo West Freight' + '4 trucks' badge",
+        "Status Summary Pill ('3 Active Loads · 1 Idle')",
+        "Scenario Clock: 'Mon 26 Oct 2026 · 10:00 PT'",
+        "'Demo Data' Badge (soft pastel violet)",
+        "'Talk to FreightOS' Voice Toggle Mic Button with live sound wave glow",
+        "Notifications Bell with red badge (popover list)",
+        "Reset Demo State Button"
+      ]
+    },
+    "main_content": {
+      "padding": "p-4 space-y-4 flex-1 flex flex-col h-[calc(100vh-64px)] overflow-hidden",
+      "metric_row": "grid grid-cols-12 gap-4 h-28 shrink-0",
+      "metric_cards": [
+        "Card 1: Booked revenue $3,700 (col-span-4)",
+        "Card 2: After trip costs (est.) $1,054 (col-span-4)",
+        "Card 3: Empty driving 29.9% (col-span-4)"
+      ],
+      "attention_strip": "bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 flex items-center justify-between text-xs font-medium text-amber-900 shadow-sm shrink-0",
+      "center_workspace": "flex-1 grid grid-cols-12 gap-4 min-h-0 relative",
+      "map_canvas_area": "col-span-12 relative rounded-2xl overflow-hidden shadow-sm border border-[#E2E8F0] bg-[#FAF8F5] flex-1 flex flex-col",
+      "map_overlay_controls": {
+        "top_left": "Map / Schedule Switcher pill tab",
+        "top_right": "AI Activity Summary Pill ('AI Dispatcher Active · Scanning 14 return loads in CA')",
+        "bottom_left": "Route Legend (Confirmed Solid / Proposed Dashed Indigo / Empty Dotted Grey)"
+      },
+      "bottom_command_bar": "sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border border-[#E2E8F0] rounded-2xl p-3 shadow-lg flex items-center gap-3"
+    },
+    "contextual_right_panel": {
+      "width": "w-96 (384px) or w-[420px]",
+      "behavior": "Slide-in from right overlay or side column (only ONE panel open at a time)",
+      "panel_types": [
+        "truck_detail: Truck 102 Telematics, Driver photo, Fuel 68%, HOS remaining, Active route",
+        "return_load_decision: AI recommended return loads for Truck 101 in Bakersfield, Profit Margin comparison, Accept/Counter CTA",
+        "broker_call_transcript: Simulated audio call player + live transcript with broker C.H. Robinson, sentiment tag, rate negotiation",
+        "ai_conversation: Interactive chat with FreightOS AI copilot",
+        "metric_breakdown: Detailed breakdown for Booked Revenue / Fuel Costs / Empty Miles",
+        "activity_feed: Real-time event log of dispatcher actions & driver updates",
+        "document_viewer: Rate Confirmation PDF preview / Bill of Lading"
+      ]
+    }
+  },
+  "status_stepper_pattern": {
+    "steps": [
+      "Proposal ready",
+      "Terms approved",
+      "Awaiting broker",
+      "Booked",
+      "Driver instructions sent",
+      "Driver acknowledged"
+    ],
+    "styling": "Horizontal step bar with soft indigo filled circles for completed steps, pulsating glow ring for active step, and muted grey lines for upcoming steps."
+  },
+  "visual_enhancers": {
+    "card_radius": "rounded-2xl (16px to 20px)",
+    "box_shadow": "shadow-[0_2px_12px_rgba(51,50,57,0.06)] hover:shadow-[0_4px_20px_rgba(67,81,172,0.12)] transition-shadow duration-200",
+    "shimmer_effect": "animate-pulse bg-gradient-to-r from-[#4351AC]/10 via-[#95E8CA]/30 to-[#4351AC]/10 bg-[length:200%_100%]",
+    "voice_waveform": "Animated CSS bars / canvas equalizer reacting to mic active state"
+  },
+  "image_urls": {
+    "driver_portraits": [
+      {
+        "url": "https://images.unsplash.com/photo-1574757974346-45bae947d89a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwxfHxzZW1pJTIwdHJ1Y2slMjBkcml2ZXIlMjBwb3J0cmFpdCUyMHRydWNrfGVufDB8fHx8MTc5Mjg5OTk1Nnww&ixlib=rb-4.1.0&q=85",
+        "description": "Truck 101 Driver - Carlos M."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1760944016370-0490373446f7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwzfHxzZW1pJTIwdHJ1Y2slMjBkcml2ZXIlMjBwb3J0cmFpdCUyMHRydWNrfGVufDB8fHx8MTc5Mjg5OTk1Nnww&ixlib=rb-4.1.0&q=85",
+        "description": "Truck 102 Driver - Dave K."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1505165697550-710e168b709d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHw0fHxzZW1pJTIwdHJ1Y2slMjBkcml2ZXIlMjBwb3J0cmFpdCUyMHRydWNrfGVufDB8fHx8MTc5Mjg5OTk1Nnww&ixlib=rb-4.1.0&q=85",
+        "description": "Truck 103 Driver - Sarah T."
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1626712211690-8de4fe30177c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwyfHxzZW1pJTIwdHJ1Y2slMjBkcml2ZXIlMjBwb3J0cmFpdCUyMHRydWNrfGVufDB8fHx8MTc5Mjg5OTk1Nnww&ixlib=rb-4.1.0&q=85",
+        "description": "Truck 104 Driver - Mike B."
+      }
+    ]
+  },
+  "data_testid_convention": {
+    "rule": "Every button, input, tab, metric card, map marker, panel toggle, and key metric element MUST have a clear data-testid attribute in kebab-case.",
+    "examples": [
+      "data-testid='header-mic-button'",
+      "data-testid='reset-demo-button'",
+      "data-testid='metric-card-revenue'",
+      "data-testid='metric-card-costs'",
+      "data-testid='metric-card-empty-driving'",
+      "data-testid='attention-strip-alert-102'",
+      "data-testid='attention-strip-alert-101'",
+      "data-testid='map-schedule-switch'",
+      "data-testid='truck-marker-101'",
+      "data-testid='truck-marker-102'",
+      "data-testid='panel-close-button'",
+      "data-testid='bottom-command-input'",
+      "data-testid='command-mic-button'",
+      "data-testid='status-stepper'",
+      "data-testid='accept-return-load-button'"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Use standard React + JS with Tailwind CSS + Framer Motion + Lucide React icons.",
+    "Ensure map is initialized via MapLibre GL with CARTO Positron light vector tiles or Leaflet fallback with CARTO tile layer so it loads instantly without needing an API key.",
+    "Implement interactive state switches for all 4 trucks (101, 102, 103, 104) on map and right side panels.",
+    "Keep command bar strictly at bottom without blocking map controls.",
+    "Provide interactive voice simulation toggle with waveform visualizer and speech audio simulation.",
+    "Ensure all interactive components carry explicit data-testid attributes for testing.",
+    "Make sure hover states don't rely on inherited text colors and explicitly specify text colors on hover.",
+    "Follow single indigo accent (#4351AC) for primary CTAs and soft lavender/grey background (#F0F0F7)."
+  ]
+}

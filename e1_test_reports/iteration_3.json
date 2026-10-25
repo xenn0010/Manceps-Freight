@@ -1,0 +1,23 @@
+{
+  "iteration": 3,
+  "passed": 8,
+  "failed": 0,
+  "retest_needed": false,
+  "summary": "Final regression across Phases 1-3: all 8 acceptance criteria pass. The app is frontend-only; its state lives in localStorage 'freightos-demo' and the frontend never calls the backend, which only serves the template 'Hello World' at /api/. So there is no backend test lane. Each check clears the demo state first.",
+  "bugs": [],
+  "action_items": [
+    {"type": "note", "severity": "low", "detail": "Seen while advancing time with the Truck 102 exception never handled: at Tue 07:00, Truck 102 shows 'Available' but the 'Delivery at risk · Truck 102 (ETA 15:30 vs window 14:00–15:00)' alert is still in Needs you. Could be intended (the exception was never handled), but it looks stale in a demo."},
+    {"type": "note", "severity": "low", "detail": "The only console errors are from the dev server's live-reload connection (ws://localhost:443/ws refused) on localhost. Running through the public preview URL logged no console errors."},
+    {"type": "note", "severity": "low", "detail": "Truck 102: the check confirmed there is exactly 1 call for L-201 in the stored state after clicking again, and that the text-status pill ends at 'Ben Ortiz acknowledged'. It did not separately count the revision and the driver text."}
+  ],
+  "checks": [
+    {"criterion": "Full stage demo (Phase 1 regression)", "name": "phase1-full-stage-demo", "lane": "browser", "status": "passed", "evidence": "Asked 'Explain Truck 101's plan' -> chat-open-decision -> approve -> call streamed -> Booked. Cards went $3,700/$1,054/29.9% -> $4,800/$2,100/4.7%. Driver acknowledged. Only console errors were dev live-reload ws errors."},
+    {"criterion": "JRN-26/27/30 schedule", "name": "schedule-view-booking-selection", "lane": "browser", "status": "passed", "evidence": "4 schedule rows, Mon day label, Now marker 10:00. O-1 block is border-dashed 'Proposed'. WIN-201 is red ('missed'), L-201 is amber. Truck 101 stays selected across Map/Schedule. After booking, O-1 is no longer dashed and SEG-101-RET (empty return) is gone."},
+    {"criterion": "JRN-31/32 Truck 102 exception", "name": "truck-102-exception-reappointment", "lane": "browser", "status": "passed", "evidence": "call-outcome-value reads 'New window 15:30–16:30 confirmed'. attention-item-102 removed. delay-history-0 kept. exception-resolved shows 'Ben Ortiz acknowledged'. After clicking again, the stored state has 1 call for L-201."},
+    {"criterion": "JRN-33/34/35 advance time", "name": "advance-time-events", "lane": "browser", "status": "passed", "evidence": "Clock moved in order: 10:00, 11:30, 11:40, 12:00, 12:30, 14:30, 15:40, 15:55, Tue 07:00. Then 'No more scheduled events' showed. Truck 103 panel shows 'Document received' with a pod-link."},
+    {"criterion": "JRN-36/37 revised terms", "name": "revised-terms-v2-booking", "lane": "browser", "status": "passed", "evidence": "Request changes with a $1,200 target -> version-diff shows $1,150, Review required chip, decision-delta +$1,096, panel contains $376. Booking v2 -> $4,850/$2,150/4.7%."},
+    {"criterion": "JRN-39/40 feedback", "name": "feedback-fact-and-rule", "lane": "browser", "status": "passed", "evidence": "Fact correction 'Driver available Tue 06:00' logged as 07:00->06:00. Cancelling the rule kept AI instructions at 0. Apply showed a scope preview, set the count to 1, and the rule appears in the list."},
+    {"criterion": "JRN-44/45/47/49/51 Fleet", "name": "fleet-edit-intake-duplicate", "lane": "browser", "status": "passed", "evidence": "Tab counts 1/4/4/4. T-101 set to $2.00/mi -> After trip costs $809. Delivery window 10:00-08:00 shows an error and disables Save. Intake created truck 105 and its driver (trucks 5, drivers 5, truck-card-105 and truck-label-105 shown, '5 trucks'). 'Add truck 101' shows intake-duplicate-warning."},
+    {"criterion": "JRN-54/55 AI settings and reset", "name": "ai-settings-and-reset", "lane": "browser", "status": "passed", "evidence": "Run via the public preview URL with 0 console errors. Approval-required switch is disabled and checked. Floor 2.25 persists across reload. Reset restores clock Mon 26 Oct 10:00, 4 trucks, no 105 card or marker, the 102 alert, $1,054 costs, default floor, and T-101 at $1.8."}
+  ]
+}

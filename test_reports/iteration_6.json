@@ -1,0 +1,19 @@
+{
+  "summary": "Retest of JRN-56 city-label overlap fix on Google map. Verified at 1920x800, 1280x800, 1440x900, 1600x900 both default and with Truck 102 selected. ZERO city/city or truck/city bounding-box overlaps in all 8 scenarios. 7 city labels and 4 truck labels rendered consistently. Provider stays 'google' (window.__freightosMap.provider='google'). Google logo not covered by [data-testid=map-legend]. Selection dimming works (selected label opacity=1.0, others=0.38). ?map=maplibre fallback renders with provider='maplibre', 7 cities, 4 trucks.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "googleAdapter.js placeCities now has 14 candidate positions with pad=3 collision box. No overlaps observed across tested viewports. SF/Oakland previously-overlapping pair now resolves cleanly.",
+  "rca of the issue": "Previous iteration_5 reported SF+Oakland city label overlap at 1920x800 and 1280x800. Fix added more candidate positions (14 total including far-side offsets, vertical stacking at +/-36 and +/-58, centered above/below) and tightened placement box. Verified fix: 0 overlaps across 4 viewports x 2 states (default + truck-102 selected)."
+}

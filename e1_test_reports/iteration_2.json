@@ -1,0 +1,12 @@
+{"iteration":2,"mode":"retest","passed":7,"failed":1,"retest_needed":true,
+"bugs":[{"severity":"medium","title":"Truck 103 label still overlaps the 'San Francisco' city label at 1440","evidence":"Screenshot first-glance-header-kpis-map-w1440.png: the '103' pill at about (552,432) covers the 'San Francisco' text (it reads 'S...isco'). The 101 marker also sits on the 'L' of 'Los Angeles'. The check only compares truck labels with each other, and those do not overlap, so it passed. The criterion also forbids truck-vs-city overlap. The app is frontend-only (localStorage), so there is no API to cross-check. This is a visual bug.","check":"first-glance-header-kpis-map"}],
+"action_items":["Fix the Truck 103 label offset (and the 101 marker) so they avoid city labels. Consider adding city-label testids so the check can assert truck-vs-city overlap."],
+"checks":[
+{"criterion":"JRN-7/8/9 AI command bar and voice","name":"ai-command-bar-voice","lane":"browser","status":"passed","evidence":"The destroy crash is fixed. 'What needs me?' showed 2 linked items, the unknown command got the fallback, and the mic went listening, then cancel, then answer. Only WS HMR console noise."},
+{"criterion":"JRN-12/13/14 call, booking, driver ack","name":"call-booking-driver-ack","lane":"browser","status":"passed","evidence":"The call panel opened, the transcript streamed, and pause/resume worked. It reached Booked with cards $4,800/$2,100/4.7%, then Driver instructions sent, then Driver acknowledged."},
+{"criterion":"JRN-2 labels / first glance","name":"first-glance-header-kpis-map","lane":"browser","status":"failed","evidence":"Truck-vs-truck boxes do not overlap at 1280/1440/1920, but at 1440 the screenshot shows the 103 label covering San Francisco."},
+{"criterion":"smoke","name":"truck-101-select-deselect","lane":"browser","status":"passed","evidence":"rerun pass"},
+{"criterion":"smoke","name":"metric-breakdowns","lane":"browser","status":"passed","evidence":"rerun pass"},
+{"criterion":"smoke","name":"decision-panel-approve-preview","lane":"browser","status":"passed","evidence":"rerun pass"},
+{"criterion":"smoke","name":"idempotency-reject-reset-persist","lane":"browser","status":"passed","evidence":"rerun pass"},
+{"criterion":"smoke","name":"risk-notifications-keyboard","lane":"browser","status":"passed","evidence":"rerun pass"}]}
