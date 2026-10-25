@@ -50,8 +50,10 @@ function lineStyle(f, g) {
 export async function createGoogleAdapter(container, handlers, apiKey, onFail) {
   window.gm_authFailure = () => onFail("Google rejected the API key (gm_authFailure)");
   const g = await loadGoogle(apiKey);
-  container.innerHTML = "";
-  const map = new g.maps.Map(container, {
+  const mapEl = document.createElement("div");
+  mapEl.style.cssText = "width:100%;height:100%";
+  container.appendChild(mapEl);
+  const map = new g.maps.Map(mapEl, {
     center: { lat: 36.3, lng: -120.4 }, zoom: 6.4, styles: STYLE, disableDefaultUI: true, clickableIcons: false,
     keyboardShortcuts: false, gestureHandling: "greedy", backgroundColor: "#EEEFF1", isFractionalZoomEnabled: true,
   });
@@ -118,14 +120,15 @@ export async function createGoogleAdapter(container, handlers, apiKey, onFail) {
       const name = c.el.querySelector(".city-name");
       const p = px(c.pos);
       const w = name.offsetWidth;
-      const h = 16;
+      const h = name.offsetHeight || 16;
       const side = c.side === "left" ? -1 : 1;
       const sx = (dir, gap) => (dir > 0 ? gap : -gap - w);
-      const cands = [[sx(side, 9), -8], [sx(-side, 9), -8], [sx(side, 9), -22], [sx(side, 9), 6], [sx(-side, 9), -22], [sx(-side, 9), 6], [sx(side, 41), -8], [sx(-side, 41), -8], [-w / 2, -58], [-w / 2, 42]];
+      const cands = [[sx(side, 9), -8], [sx(-side, 9), -8], [sx(side, 9), -22], [sx(side, 9), 6], [sx(-side, 9), -22], [sx(-side, 9), 6], [sx(side, 9), -36], [sx(side, 9), 20], [sx(-side, 9), -36], [sx(-side, 9), 20], [sx(side, 41), -8], [sx(-side, 41), -8], [-w / 2, -58], [-w / 2, 42]];
       let best = null;
       cands.forEach(([dx, dy], i) => {
-        const box = { x: p.x + dx - 2, y: p.y + dy - 2, w: w + 4, h: h + 4 };
-        const score = [...iconBoxes, ...placed].reduce((s, o) => s + overlap(box, o), 0) * 10 + (onRoute(box) ? 150 : 0) + i * 20;
+        const box = { x: p.x + dx - 3, y: p.y + dy - 3, w: w + 6, h: h + 6 };
+        const ov = [...iconBoxes, ...placed].reduce((s, o) => s + overlap(box, o), 0);
+        const score = ov * 10 + (ov > 0 ? 1000 : 0) + (onRoute(box) ? 150 : 0) + i * 20;
         if (!best || score < best.score) best = { dx, dy, box, score };
       });
       name.style.left = `${best.dx}px`;
@@ -269,7 +272,7 @@ export async function createGoogleAdapter(container, handlers, apiKey, onFail) {
       stopMarkers.forEach((m) => m.setMap(null));
       layer.setMap(null);
       g.maps.event.clearInstanceListeners(map);
-      container.innerHTML = "";
+      mapEl.remove();
     },
   };
 }

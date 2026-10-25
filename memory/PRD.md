@@ -57,6 +57,9 @@ Build Phase 1 of FreightOS, a premium AI-dispatcher operations web app for a hac
 - Frontend seams: services/contactsService.js, callScripts.js (task spec → transient assistant on server), liveCallService.js (live dial + 1.5 s polling, simulated runner, retry, resume), engine4.js (idempotent outcome → store transitions), vapiVoice.js (@vapi-ai/web dispatcher, client tools, snapshot + add-message), map/mapAdapter.js (Google first, auto MapLibre fallback), map/googleAdapter.js (styles array, OverlayView markers, polylines).
 - UI: BriefingStream (replaces notification popover), CallConfirmCard, LiveCallPanel, CallingSettings (Simulated default). Live mode suppresses auto simulated calls/texts; every real call needs click + confirm.
 - Testing iteration_4: backend 3/3; JRN-57/65/66/67/70 pass; JRN-64 UI race fixed (dial disabled until config loads); JRN-68 flag = attention strip kept per REQ-156. JRN-56/58/59/61–63 blocked on keys.
-- Keys (VAPI_PRIVATE_KEY, VAPI_PHONE_NUMBER_ID, DEMO_DRIVER_PHONE, REACT_APP_VAPI_PUBLIC_KEY, REACT_APP_GOOGLE_MAPS_API_KEY) not yet saved via secure card.
+- Keys loaded from user-uploaded /app/memory/secrets/freightos.env into backend/frontend .env (Oct 2026). VAPI private key had a stray leading "y"; the corrected 36-char key validates (GET /phone-number 200, number active). Public key validated via POST /call/web (201, session deleted). /api/voice/config configured:true.
+- Google map fix: StrictMode double-mount let a discarded adapter wipe the shared container → false fallback. googleAdapter now mounts into its own child element. Legend raised so Google logo stays visible; SF/Oakland label collision fixed. iteration_5 + iteration_6: JRN-56 and JRN-57 pass at 4 viewports.
+- .gitignore covers .env, .env.*, **/.env, memory/secrets/.
+- Pending (human): JRN-58/59 voice session, JRN-61–63 real calls (user places them).
 
 - Oct 2026 (user decision): "Needs you" KPI tile removed (REQ-156 updated). Decisions are carried by the AI briefing stream (inline action) plus attention chips (attention-chip-ATT-*) at the top of the stream, all from the same store. KPI row is now 3 metric cards.

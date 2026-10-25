@@ -89,3 +89,10 @@ mobile/.metro-cache/
 **/.emergent/recordings/
 frontend/node_modules/.cache/default-development/20.pack
 frontend/node_modules/.cache/default-development/19.pack
+
+# secrets
+.env
+.env.*
+**/.env
+memory/secrets/
+frontend/node_modules/.cache/default-development/6.pack

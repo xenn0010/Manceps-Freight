@@ -133,7 +133,7 @@ export function MapCanvas() {
           <IconButton label={selected ? "Fit selected truck" : "Fit fleet"} data-testid="map-fit-fleet" onClick={fitFleet}><Maximize2 className="h-4 w-4" /></IconButton>
         </div>}
       </div>
-      {mode === "map" && <div className="absolute bottom-3 left-3 z-10"><MapLegend /></div>}
+      {mode === "map" && <div className="absolute bottom-[34px] left-3 z-10"><MapLegend /></div>}
       {mode === "map" && <div className="absolute right-3 top-[156px] z-[6] flex flex-col items-end gap-1.5">
         <button type="button" data-testid="ai-instructions-button" onClick={() => useStore.getState().togglePanel("rules")} className="flex items-center gap-1.5 rounded-[12px] bg-white/90 px-3 py-2 text-[12.5px] font-medium shadow-sm hover:bg-white">
           <BookOpen className="h-3.5 w-3.5" /> AI instructions <span className="text-[#9A9DA4] tnum">{Object.keys(data.rules).length}</span>

@@ -74,7 +74,7 @@ export function BriefingStream() {
   useSpeech(notes, speak);
   if (!open) return null;
   return (
-    <section className="absolute bottom-[132px] left-3 top-[60px] z-[6] flex w-[288px] flex-col" data-testid="briefing-stream" aria-label="AI briefing" aria-live="polite">
+    <section className="absolute bottom-[154px] left-3 top-[60px] z-[6] flex w-[288px] flex-col" data-testid="briefing-stream" aria-label="AI briefing" aria-live="polite">
       <div className="glass flex items-center gap-2 !rounded-[16px] px-3 py-2">
         <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#AF6EFF] opacity-60" /><span className="relative h-2 w-2 rounded-full bg-[#AF6EFF]" /></span>
         <span className="text-[12.5px] font-semibold">Briefing</span>
