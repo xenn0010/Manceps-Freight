@@ -14,10 +14,11 @@ from pymongo.errors import ServerSelectionTimeoutError
 
 from manceps_api import serve
 from manceps_api.app import create_app, create_app_from_env
-from manceps_api.settings import Settings
+from manceps_api.settings import Settings, load_settings
 from manceps_core.mongo import MongoClientT
 
 OPERATION_ID = re.compile(r"^[a-z]+(_[a-z]+)+$")
+LOCAL_FRONTEND = "http://localhost:3000"
 
 
 def _fail(*_args: Any, **_kwargs: Any) -> Any:
@@ -90,6 +91,33 @@ def test_cors_allows_configured_origin(mongo_client: MongoClientT) -> None:
         denied = client.get("/healthz", headers={"Origin": "https://evil.test"})
     assert allowed.headers["access-control-allow-origin"] == "https://app.manceps.test"
     assert "access-control-allow-origin" not in denied.headers
+
+
+def test_cors_preflight_for_local_frontend(monkeypatch: pytest.MonkeyPatch, mongo_client: MongoClientT) -> None:
+    """CORS_ORIGINS=http://localhost:3000 answers credentialed preflights for the headers the web client sends."""
+    monkeypatch.setenv("CORS_ORIGINS", LOCAL_FRONTEND)
+    app = create_app(load_settings(), mongo_client)
+    request_headers = "authorization,content-type,idempotency-key"
+    with TestClient(app) as client:
+        preflight = client.options("/v1/auth/otp/start", headers={
+            "Origin": LOCAL_FRONTEND, "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": request_headers,
+        })
+        foreign = client.options("/v1/auth/otp/start", headers={
+            "Origin": "http://localhost:3001", "Access-Control-Request-Method": "POST",
+        })
+        simple = client.get("/healthz", headers={"Origin": LOCAL_FRONTEND})
+    assert preflight.status_code == 200
+    assert preflight.headers["access-control-allow-origin"] == LOCAL_FRONTEND
+    assert preflight.headers["access-control-allow-credentials"] == "true"
+    assert "POST" in preflight.headers["access-control-allow-methods"]
+    allowed = {name.strip().lower() for name in preflight.headers["access-control-allow-headers"].split(",")}
+    assert set(request_headers.split(",")) <= allowed
+    assert foreign.status_code == 400
+    assert "access-control-allow-origin" not in foreign.headers
+    assert simple.headers["access-control-allow-origin"] == LOCAL_FRONTEND
+    assert simple.headers["access-control-allow-credentials"] == "true"
+    assert "x-request-id" in simple.headers["access-control-expose-headers"].lower()
 
 
 def test_create_app_from_env_requires_database(monkeypatch: pytest.MonkeyPatch) -> None:

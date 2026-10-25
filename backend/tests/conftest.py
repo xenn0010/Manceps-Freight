@@ -43,7 +43,9 @@ REPO_ROOT = BACKEND_DIR.parent
 PLUGIN_DIR = REPO_ROOT / "hermes-freight"
 SIGNUP_API_DIR = REPO_ROOT / "signup-api"
 PLUGIN_PACKAGE = "hf_probe_plugin"
-START = datetime(2026, 10, 25, 12, 0, tzinfo=UTC)
+# Far in the future on purpose: TTL indexes (mongomock on every read, the real server's TTL monitor) delete
+# documents by wall-clock time, so fake-clock timestamps must never fall into the real past.
+START = datetime(2050, 10, 25, 12, 0, tzinfo=UTC)
 TENANT_A = "apex-freight"
 TENANT_B = "bolt-logistics"
 TEST_KID = "k-test-1"

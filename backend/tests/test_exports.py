@@ -114,7 +114,7 @@ def test_formula_injection_escaped_in_exported_files(client: TestClient, mongo_c
 
 
 def test_export_filename_is_sanitized() -> None:
-    assert writer.export_filename("carriers", "csv", START) == "carriers-20261025-120000.csv"
+    assert writer.export_filename("carriers", "csv", START) == "carriers-20501025-120000.csv"
     assert writer.content_disposition("bad\"name\r\n.csv") == 'attachment; filename="bad_name_.csv"'
 
 

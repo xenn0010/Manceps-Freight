@@ -6,8 +6,9 @@ from dataclasses import dataclass
 
 from ..settings import Settings
 from .broker_lookup import BrokerLookup, broker_lookup_from_settings
+from .dev_verifier import phone_verifier_from_settings
 from .mailer import Mailer, mailer_from_settings
-from .twilio_verify import Verifier, verifier_from_settings
+from .twilio_verify import Verifier
 
 
 @dataclass(frozen=True)
@@ -28,5 +29,5 @@ class Integrations:
         Returns:
             The integrations.
         """
-        return cls(verifier=verifier_from_settings(settings), mailer=mailer_from_settings(settings),
+        return cls(verifier=phone_verifier_from_settings(settings), mailer=mailer_from_settings(settings),
                    broker_lookup=broker_lookup_from_settings(settings))

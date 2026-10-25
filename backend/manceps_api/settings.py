@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Literal
 
 from pydantic import Field, SecretStr, field_validator, model_validator
@@ -20,10 +21,12 @@ MAX_TRUSTED_PROXY_HOPS = 10
 DEFAULT_MAX_BODY_BYTES = 1024 * 1024
 MAX_TCP_PORT = 65_535
 WILDCARD_ORIGIN = "*"
+DEV_OTP_CODE_FORMAT = re.compile(r"[0-9]{6}")
+DEV_ENV = "dev"
 
 SECRET_FIELDS: frozenset[str] = frozenset({
     "mongodb_uri", "jwt_keys_json", "twilio_auth_token", "smtp_password", "fmcsa_webkey", "eia_api_key",
-    "google_maps_api_key", "ors_api_key", "secrets_key",
+    "google_maps_api_key", "ors_api_key", "secrets_key", "dev_otp_code",
 })
 PRODUCTION_REQUIRED: tuple[str, ...] = (
     "mongodb_uri", "jwt_active_kid", "jwt_keys_json", "secrets_key", "public_base_url",
@@ -36,7 +39,8 @@ LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 class Settings(BaseSettings):
     """All runtime configuration. Field names map case-insensitively to environment variables (ENV, MONGODB_URI...)."""
 
-    model_config = SettingsConfigDict(env_file=None, extra="ignore", case_sensitive=False, frozen=True)
+    model_config = SettingsConfigDict(env_file=None, extra="ignore", case_sensitive=False, frozen=True,
+                                      hide_input_in_errors=True)
 
     env: Env = "dev"
     mongodb_uri: SecretStr | None = None
@@ -55,6 +59,7 @@ class Settings(BaseSettings):
     twilio_account_sid: str | None = None
     twilio_auth_token: SecretStr | None = None
     twilio_verify_service_sid: str | None = None
+    dev_otp_code: SecretStr | None = None
     email_login_enabled: bool = False
     smtp_host: str | None = None
     smtp_port: int = Field(default=DEFAULT_SMTP_PORT, gt=0, le=MAX_TCP_PORT)
@@ -89,6 +94,41 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
+
+    @field_validator("dev_otp_code", mode="before")
+    @classmethod
+    def _dev_otp_code_format(cls, value: object) -> object:
+        """Treat an empty DEV_OTP_CODE as unset and require exactly six ASCII digits otherwise.
+
+        Args:
+            value: Raw value from the environment or constructor.
+
+        Returns:
+            None for an empty value, else the value unchanged.
+
+        Raises:
+            ValueError: If the code is not exactly six ASCII digits (the message never contains the code).
+        """
+        raw = value.get_secret_value() if isinstance(value, SecretStr) else value
+        if raw is None or raw == "":
+            return None
+        if not isinstance(raw, str) or DEV_OTP_CODE_FORMAT.fullmatch(raw) is None:
+            raise ValueError("DEV_OTP_CODE must be exactly 6 digits")
+        return value
+
+    @model_validator(mode="after")
+    def _dev_otp_code_only_in_dev(self) -> Settings:
+        """Refuse the fixed dev sign-in code in every environment except dev (fail closed).
+
+        Returns:
+            The validated settings.
+
+        Raises:
+            ValueError: If DEV_OTP_CODE is set and ENV is not dev.
+        """
+        if self.dev_otp_code is not None and self.env != DEV_ENV:
+            raise ValueError(f"DEV_OTP_CODE is only allowed when ENV={DEV_ENV}")
+        return self
 
     @model_validator(mode="after")
     def _production_fails_closed(self) -> Settings:

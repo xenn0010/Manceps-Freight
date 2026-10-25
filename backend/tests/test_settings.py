@@ -22,6 +22,7 @@ SECRET_VALUES = {
     "GOOGLE_MAPS_API_KEY": "gmaps-key-value",
     "ORS_API_KEY": "ors-key-value",
     "SECRETS_KEY": "secrets-key-value",
+    "DEV_OTP_CODE": "482915",
 }
 PRODUCTION_REQUIRED = {
     "ENV": "production",
