@@ -1,0 +1,73 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: backend gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: uv sync --frozen
+      - name: Tests and coverage
+        run: uv run pytest -q --cov=manceps_core --cov=manceps_api --cov=manceps_worker --cov-fail-under=90
+      - name: Ruff
+        run: uv run ruff check .
+      - name: Pyright (strict)
+        run: uv run pyright
+      - name: OpenAPI is current
+        run: uv run python scripts/export_openapi.py --check
+      - name: Vendored core is current
+        run: uv run python scripts/vendor_core.py --check
+
+  plugin:
+    name: hermes-freight plugin tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: hermes-freight
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Tests
+        run: uv run --with-requirements requirements-dev.txt --with ruamel.yaml pytest -q -c tests/pytest.ini tests
+      - name: Ruff
+        run: uvx ruff check .
+
+  signup-api:
+    name: signup-api tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: signup-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Tests
+        run: uv run pytest -q
+      - name: Ruff
+        run: uv run ruff check .

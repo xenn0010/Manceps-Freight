@@ -74,6 +74,32 @@ back office. The backend must be complete enough that the only remaining work is
    no secrets in logs or responses.
 7. A short end-to-end test drives the main flow through the HTTP API against mongomock and fake
    integrations.
+8. **Real database.** The same suite also passes against a real MongoDB (7.x) when
+   `MONGODB_TEST_URI` is set (`uv run pytest -q -m "not mongomock_only"`). Tests that rely on
+   real behavior mongomock lacks (atomic `find_one_and_update` under concurrency, TTL indexes,
+   unique index conflicts, 2dsphere, text search) are marked `realdb` and run only there. CI
+   runs this gate on every push with a MongoDB service container.
+9. **Property-based tests** (Hypothesis) for every state machine, parser, normalizer and money
+   calculation: no input may crash it or produce an invalid state.
+10. **Independent review.** After each work package, a separate reviewer agent that receives only
+   the code (not the builder's report) audits correctness, security, tenant isolation and
+   failure handling. Every CONFIRMED finding is fixed with a regression test before the next
+   package starts. The review findings and fixes are recorded in `docs/reviews/<wp>.md`.
+
+## Production-readiness bar (top-notch, applies to the platform as a whole)
+
+- **Deployable:** a Dockerfile (non-root, pinned base, healthcheck), a process definition for
+  api and worker, and a documented deploy for the chosen host. Config only by environment.
+- **CI on GitHub Actions:** all gates, real-MongoDB gate included, on every push and PR.
+- **Observability:** structured logs, request and job metrics, error reporting hook (Sentry
+  DSN optional, `not_configured` when unset), `/readyz` that checks the database and indexes.
+- **Security:** a written threat model (`docs/security/threat-model.md`) kept current; OWASP
+  API Top 10 addressed per route family; dependency audit (`uv run pip-audit` or equivalent) clean.
+- **Performance:** list routes indexed (no collection scans on tenant data, checked with
+  `explain` in the real-DB suite); SSE fan-out tested at 200 concurrent subscribers per firm.
+- **Docs for the frontend:** `openapi.json` with examples on every request and response model,
+  plus `docs/api/frontend-guide.md` (auth flow, token refresh, SSE, errors, pagination,
+  idempotency).
 
 ## Report format (every task)
 
